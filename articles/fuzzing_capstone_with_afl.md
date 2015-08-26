@@ -169,7 +169,7 @@ Twice faster! Pretty good for 10 minute fiddling. The VM I'm running this is dua
            Crashes found : 0 locally unique
 
 
-I let that run overnight and actually found a bug. More on that in the next part, along with analysis  of what we found, using AFL's tools (cmin, tmin, crash exploration mode), gdb and [crashwalk](https://github.com/bnagy/crashwalk).
+I let that run overnight and actually found [a harmless bug](https://github.com/aquynh/capstone/issues/463). More on that in the next part, along with analysis  of what we found, using AFL's tools (cmin, tmin, crash exploration mode), gdb and [crashwalk](https://github.com/bnagy/crashwalk).
 
 # Rundown
 In this article we  
