@@ -72,7 +72,7 @@ To compile this you'll need to install [AFL](https://lcamtuf.coredump.cx/afl/), 
 So far so good, AFL is running about 3.8k test/second, on just one core.
 
 
-# Speeding things up: enter `AFL_PERSISTENT_MODE`.
+# Speeding things up: enter `AFL_PERSISTENT`.
 AFL has various tricks to speed up the fork step, but forking a process every time we want to test an input is still pretty slow. What if we could skip it entirely, and reuse the same process multiple times?
 
 We are going to use AFL's in-process fuzzing. This time, we don't restart a new process for each new input. This will be *really* faster.

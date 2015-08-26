@@ -70,7 +70,7 @@ afl-fuzz -i inputs -o findings ./harness
 
 <p><img alt="first harness run" src="resources/fuzzing_capstone/harness_run.png" /></p>
 <p>So far so good, AFL is running about 3.8k test/second, on just one core.</p>
-<h2>Speeding things up: enter <code>AFL_PERSISTENT_MODE</code>.</h2>
+<h2>Speeding things up: enter <code>AFL_PERSISTENT</code>.</h2>
 <p>AFL has various tricks to speed up the fork step, but forking a process every time we want to test an input is still pretty slow. What if we could skip it entirely, and reuse the same process multiple times?</p>
 <p>We are going to use AFL's in-process fuzzing. This time, we don't restart a new process for each new input. This will be <em>really</em> faster.</p>
 <p>To do so, the test harness is a bit more complex:</p>
