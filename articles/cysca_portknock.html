@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Static analysis of CySCA 2014 portknock using Hopper Disassembler</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>// <a href=/>Home</a> // <a href=/about.html>About me</a> // <a href="https://github.com/toastedcornflakes">Github</a> // <div class="subtitle">— Now with 30% more cyber!</div></nav>
+<h1>Static analysis of CySCA 2014 portknock using Hopper Disassembler</h1>
+<p><a href="https://www.cyberchallenge.com.au/">CySCA</a> is a Capure The Flag with challenges ranging from crypto to reverse engineering, and from forensic to web pentest. You can get all the challenges in a <a href="https://www.vulnhub.com/entry/cysca-cysca2014-in-a-box,94/">VM</a>, or just this <a href="resources/cysca_portknock/488f866ad090d0843657f322e516168a-re02">binary</a>.</p>
+<p>We're going to analyze the second reverse engineering challenge, and try to capture the flag. As an added difficulty, we're going to restrict ourselves to static analysis. This means no logs, no debugger, only disassembly.</p>
+<h3>First recon</h3>
+<p>Let's see what we can get without diving into disassembly.</p>
+<div class="codehilite"><pre>$ file 488f866ad090d0843657f322e516168a-re02
+488f866ad090d0843657f322e516168a-re02: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.24, BuildID[sha1]=89593421780a0407b46f8d9c7671368699003cc9, stripped
+</pre></div>
+
+
+<p>It's a simple linux x86 binary. Nothing fancy here, but the symbols are stripped.  </p>
+<p>Let's look at the library functions used.</p>
+<div class="codehilite"><pre>$ readelf -r 488f866ad090d0843657f322e516168a-re02
+
+Relocation section &#39;.rel.dyn&#39; at offset 0x5c8 contains 1 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+0804aff0  00001406 R_386_GLOB_DAT    00000000   __gmon_start__
+
+Relocation section &#39;.rel.plt&#39; at offset 0x5d0 contains 34 entries:
+ Offset     Info    Type            Sym.Value  Sym. Name
+0804b000  00000107 R_386_JUMP_SLOT   00000000   setsockopt
+0804b004  00000207 R_386_JUMP_SLOT   00000000   read
+0804b008  00000307 R_386_JUMP_SLOT   00000000   printf
+0804b00c  00000407 R_386_JUMP_SLOT   00000000   fgets
+0804b010  00000507 R_386_JUMP_SLOT   00000000   fclose
+0804b014  00000607 R_386_JUMP_SLOT   00000000   inet_ntoa
+0804b018  00000707 R_386_JUMP_SLOT   00000000   signal
+0804b01c  00000807 R_386_JUMP_SLOT   00000000   chdir
+0804b020  00000907 R_386_JUMP_SLOT   00000000   alarm
+0804b024  00000a07 R_386_JUMP_SLOT   00000000   __stack_chk_fail
+0804b028  00000b07 R_386_JUMP_SLOT   00000000   getuid
+0804b02c  00000c07 R_386_JUMP_SLOT   00000000   htons
+0804b030  00000d07 R_386_JUMP_SLOT   00000000   perror
+0804b034  00000e07 R_386_JUMP_SLOT   00000000   accept
+0804b038  00000f07 R_386_JUMP_SLOT   00000000   waitpid
+0804b03c  00001007 R_386_JUMP_SLOT   00000000   fread
+0804b040  00001107 R_386_JUMP_SLOT   00000000   chroot
+0804b044  00001207 R_386_JUMP_SLOT   00000000   setgid
+0804b048  00001307 R_386_JUMP_SLOT   00000000   puts
+0804b04c  00001407 R_386_JUMP_SLOT   00000000   __gmon_start__
+0804b050  00001507 R_386_JUMP_SLOT   00000000   exit
+0804b054  00001607 R_386_JUMP_SLOT   00000000   __libc_start_main
+0804b058  00001707 R_386_JUMP_SLOT   00000000   write
+0804b05c  00001807 R_386_JUMP_SLOT   00000000   bind
+0804b060  00001907 R_386_JUMP_SLOT   00000000   getgid
+0804b064  00001a07 R_386_JUMP_SLOT   00000000   fopen
+0804b068  00001b07 R_386_JUMP_SLOT   00000000   __errno_location
+0804b06c  00001c07 R_386_JUMP_SLOT   00000000   fork
+0804b070  00001d07 R_386_JUMP_SLOT   00000000   listen
+0804b074  00001e07 R_386_JUMP_SLOT   00000000   setuid
+0804b078  00001f07 R_386_JUMP_SLOT   00000000   vsnprintf
+0804b07c  00002007 R_386_JUMP_SLOT   00000000   socket
+0804b080  00002107 R_386_JUMP_SLOT   00000000   close
+0804b084  00002207 R_386_JUMP_SLOT   00000000   send
+</pre></div>
+
+
+<p>Interesting. We can bet on a network daemon that's self-contained. It's also certainly dropping its privileges, since it uses <code>setuid</code>, <code>setgid</code> and <code>chroot</code>.</p>
+<p>We can confirm our assumptions by looking at the strings in the executable.</p>
+<div class="codehilite"><pre>$ strings 488f866ad090d0843657f322e516168a-re02 | tail -f
+Failed writing to socket
+Failed reading from socket
+Failed writing flag to socket
+FATAL ERROR bad knock number
+FATAL ERROR opening socket
+FATAL ERROR on binding
+FATAL ERROR on accept
+/dev/urandom
+ERROR: Unable to open urandom
+;*2$&quot;
+</pre></div>
+
+
+<p>Again, mostly network stuff. If we take a look at the rest of the output, we notice <code>/flags.txt</code>. The flag we're after should be on the filesystem.</p>
+<h3>Disassembly</h3>
+<p>Now for the juicy parts. I'm using <a href="http://www.hopperapp.com/">Hopper Disassembler</a> for easy cross-references, renaming, etc, but you can follow along in gdb, IDA, <a href="https://github.com/radare/radare2">radare</a> or your custom mess of python scripts if you prefer.</p>
+<p>After loading the executable in hopper, it's correctly identified as 32 bits ELF. The entry point looks like this:</p>
+<p><img alt="entry point disassembly" src="resources/cysca_portknock/entrypoint.png" /></p>
+<p>It's a i386 executable, so the arguments are passed using the [cdecl][7] convention. This means that arguments are pushed on the stack in reverse order. The first argument of [<code>__libc_start_main</code>][8] is the address of <code>main</code>, thus <code>0x8049180</code>. In hopper, highlight it and press <code>N</code> to rename it to something more meaningful. Then jump to its disassembly by pressing enter.</p>
+<p>Our <code>main</code> calls two functions, <code>sub_80489f4</code> and <code>sub_8048f9a</code>.</p>
+<p>Taking a quick look at the library functions and the strings used in the first function, we can guess it's just dropping privileges. We don't need to understand its inner-working in the details.</p>
+<p>After renaming the privilege-dropping function, <code>main</code> looks like this:<br />
+<img alt="main disassembly" src="resources/cysca_portknock/main.png" /></p>
+<p>Let's jump to the next function, <code>sub_8048f9a</code>. Since the control flow is more complex than <code>main</code>, hopper's graph-view comes in handy:<br />
+<img alt="server disassembly in graph form" src="resources/cysca_portknock/server_graphview.png" /></p>
+<p>This looks like an infinite loop, since the last block unconditionnaly <code>jmp</code> up. The error handling is pretty bare bone and is handled by several block calling <code>exit</code>.</p>
+<p>The first block is setting up a <code>socket</code>, and the next blocks call <code>bind</code>, <code>listen</code> and <code>accept</code>. The daemon is thus listening for connections.</p>
+<p>The port <code>bind</code>ed by the server is set with the following disassembly:</p>
+<div class="codehilite"><pre>mov     eax, dword [0x8049ac4]        ; load port number from DATA segment into eax
+movzx   eax, ax                          ; truncate the higher bits (a port number is 16 bits)
+mov     dword [esp], eax              ; put eax on top of the stack, as first argument of the next call
+call    htons@PLT                        ; convert the port to network byte order (big endian)
+mov     word [ebp-0x68+var_62], ax    ; store it on the stack, at the offset represented by var_62
+mov     dword [ebp-0x68+var_44], 0x1
+mov     dword [esp+0x10], 0x4
+lea     eax, dword [ebp-0x68+var_44]
+mov     dword [esp+0xc], eax
+mov     dword [esp+0x8], 0x2
+mov     dword [esp+0x4], 0x1
+mov     eax, dword [ebp-0x68+var_48]
+mov     dword [esp], eax
+call    setsockopt@PLT
+mov     dword [esp+0x8], 0x10
+lea     eax, dword [ebp-0x68+var_60] ; address of the var_60 buffer (a struct sockaddr)
+mov     dword [esp+0x4], eax
+mov     eax, dword [ebp-0x68+var_48]
+mov     dword [esp], eax
+call    bind@PLT                        ; call bind with the sockaddr
+</pre></div>
+
+
+<p><code>bind</code> takes a <code>struct sockaddr *</code> that contains, among other things, the network port.</p>
+<div class="codehilite"><pre><span class="k">struct</span> <span class="n">sockaddr_in</span> <span class="p">{</span>  
+        <span class="kt">short</span>   <span class="n">sin_family</span><span class="p">;</span>  
+        <span class="n">u_short</span> <span class="n">sin_port</span><span class="p">;</span>  
+        <span class="p">...</span>  
+<span class="p">};</span>
+</pre></div>
+
+
+<p>We can see that the <code>sockaddr</code> is built on the stack by copying values at different offsets. The <code>sockaddr</code> begins at <code>var_60</code>, and the port is stored at <code>var_62</code>, since a short is two bytes long.</p>
+<p>The port value used by the disassembly is stored at <code>0x8049ac4</code>. In hopper, go to that address, and right-click the value to switch its representation to decimal. The port used is 3422.</p>
+<p>We can confirm this assumption by netcating to the VM, and check if the port is open:</p>
+<div class="codehilite"><pre>$ nc -v 192.168.0.104 3422
+Ncat: Version 6.45 ( http://nmap.org/ncat )
+Ncat: Connected to 192.168.0.104:3422.
+&quot;^DNcat: 0 bytes sent, 4 bytes received in 0.61 seconds.
+</pre></div>
+
+
+<p>Accepted connections get their own <code>fork</code>ed process, handled by the next undiscovered function, <code>sub_80491f4</code>. The parent process just stay in the <code>accept-then-fork</code> loop.</p>
+<p>This function does the real work of the portknock, so we're going to analyze it in more details, using hopper's decompiler.</p>
+<p>Unfortunately we need to help it a bit here. In the disassembly <code>call 0x80491c5</code>, the address isn't recognized as a procedure. If we get to the disassembly we can guess why:</p>
+<div class="codehilite"><pre>080491c0         call       exit@PLT
+080491c5         push       ebp                         ;  &lt;= The address called from the previous function
+080491c6         mov        ebp, esp
+080491c8         sub        esp, 0x18
+080491cb         mov        eax, dword [ebp-0x18+arg_offset_x0]
+080491ce         mov        dword [0x804b090], eax
+080491d3         mov        dword [esp+0x4], 0x804919c
+080491db         mov        dword [esp], 0xe
+080491e2         call       signal@PLT
+080491e7         mov        eax, dword [ebp-0x18+arg_offset_x4]
+080491ea         mov        dword [esp], eax
+080491ed         call       alarm@PLT
+080491f2         leave
+080491f3         ret
+</pre></div>
+
+
+<p>The previous instruction is a call to <code>exit</code>. Since <code>exit</code> never returns, the compiler didn't generate a function epilogue (no <code>ret</code> instruction). Since Hopper doesn't know that the function has ended, it extends the procedure to the next epilogue, at <code>0x080491f3</code>.</p>
+<p>To get the decompilation to work accurately, mark <code>0x080491c5</code> as a procedure. Doing so, the previous function doesn't see any epilogue anymore, so mark <code>sub_804919c</code> as a procedure again.</p>
+<p>We can finally use the pseudo-code feature of Hopper on the portknock function and all its subfunctions:</p>
+<div class="codehilite"><pre>function sub_80491f4 {
+    var_36 = arg_offset_x0;
+    eax = puts@PLT(&quot;portknockd: New Client. Waiting for knocks&quot;);
+    var_32 = 0x0;
+    while (var_32 &lt;= 0x4) {
+            sub_80491c5(var_36, 0xa);
+            var_28 = sub_8049616(var_36, 0x98d2);
+            var_40 = write@PLT(var_36, &amp;var_28, 0x4);
+            if (var_40 != 0x4) {
+                    perror@PLT(&quot;Failed writing to socket&quot;);
+                    close@PLT(var_36);
+                    exit@PLT(0x1);
+            }
+            var_24 = 0x0;
+            var_40 = read@PLT(var_36, &amp;var_24, 0x4);
+            if (var_40 != 0x4) {
+                    perror@PLT(&quot;Failed reading from socket&quot;);
+                    close@PLT(var_36);
+                    exit@PLT(0x1);
+            }
+            var_44 = sub_80495e4(var_28, var_32);
+            if (var_44 == var_24) {
+                    if (var_32 == 0x4) {
+                            sub_804935d(var_36);
+                            close@PLT(var_36);
+                            exit@PLT(0x1);
+                    }
+                    close@PLT(var_36);
+                    eax = sub_8049440(var_32);
+                    var_36 = eax;
+                    var_32 = var_32 + 0x1;
+            }
+            else {
+                    close@PLT(var_36);
+                    eax = exit@PLT(0x1);
+            }
+    }
+    return eax;
+}
+</pre></div>
+
+
+<p>The only argument passed from the previous function is the connection's file descriptor, and is saved into <code>var_36</code>. After printing an informative message, the loop starts. The programmer certainly wrote a simple <code>for(int var_32 = 0; var_32 &lt;= 4; var32++)</code>, but since some statements are re-ordered by the compiler, it's a bit harder to see.</p>
+<p>Hint: <code>sub_80491c5(var_36, 0xa)</code> sets a time-out on the process handling the connection. You can safely ignore it for the purpose of the analysis.</p>
+<p><code>sub_8049616</code> generates a 4 bytes value (<code>var_28</code>) that is sent to the open connection using <code>write</code>. The response is <code>read</code> (into <code>var_24</code>). The next function called, <code>sub_80495e4</code>, uses the loop counter (<code>var_32</code>) and the value generated previously (<code>var_28</code>) to create a value that should match the value <code>read</code> from the network. If the values don't match, the process calls <code>exit</code>.</p>
+<p>This is a simple challenge-response. We don't need to analyze the function creating the value, since that value is send to us. We only need to understand how that value and the loop counter are mixed together, replicate it and make the portknock succeed.</p>
+<p>Here's the code for the mixing function, <code>sub_80495e4</code>:</p>
+<div class="codehilite"><pre>function sub_80495e4 {
+    if ((arg_offset_x4 &amp; 0x1) == 0x0) {
+        var_12 = (arg_offset_x4 + 0x2) * arg_offset_x0;
+    }
+    else {
+        var_12 = 0x2 + arg_offset_x0 + arg_offset_x4;
+    }
+    eax = var_12;
+    return eax;
+}
+</pre></div>
+
+
+<p>Pretty simple. It takes the second argument (<code>arg_offset_x4</code>, the counter) and checks if its lower bit is set. Depending on the result, the mixing operation on the random value is different.</p>
+<p>Let's rewrite it to python:</p>
+<div class="codehilite"><pre><span class="k">def</span> <span class="nf">mangler</span><span class="p">(</span><span class="n">rand</span><span class="p">,</span> <span class="n">counter</span><span class="p">):</span>  
+    <span class="k">if</span> <span class="n">counter</span> <span class="o">&amp;</span> <span class="mh">0x1</span> <span class="o">==</span> <span class="mh">0x0</span><span class="p">:</span>  
+        <span class="k">return</span> <span class="p">(</span><span class="n">counter</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">rand</span>  
+    <span class="k">else</span><span class="p">:</span>  
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">counter</span> <span class="o">+</span> <span class="n">rand</span>
+</pre></div>
+
+
+<p>If the response we send match the awaited response, the connection is <code>close</code>d and <code>sub_8049440</code> is called.</p>
+<div class="codehilite"><pre>function sub_8049440 {
+    var_92 = *0x14;
+    signal@PLT(0xd, 0x1);
+    if (arg_offset_x0 &gt; 0x3) {
+            perror@PLT(&quot;FATAL ERROR bad knock number&quot;);
+            exit@PLT(0x1);
+    }
+    arg_offset_x0 = arg_offset_x0 + 0x1;
+    var_52 = socket@PLT(0x2, 0x1, 0x0);
+    if (var_52 &lt; 0x0) {
+            perror@PLT(&quot;FATAL ERROR opening socket&quot;);
+            exit@PLT(0x1);
+    }
+    var_60 = 0x0;
+    *(&amp;var_60 + 0x4) = 0x0;
+    *(&amp;var_60 + 0x8) = 0x0;
+    *(&amp;var_60 + 0xc) = 0x0;
+    var_60 = 0x2;
+    var_64 = 0x0;
+    var_62 = LOWORD(htons@PLT(LOWORD(*(arg_offset_x0 * 0x4 + 0x8049ac4)) &amp; 0xffff));
+    var_48 = 0x1;
+    setsockopt@PLT(var_52, 0x1, 0x2, &amp;var_48, 0x4);
+    if (bind@PLT(var_52, &amp;var_60, 0x10) &lt; 0x0) {
+            perror@PLT(&quot;FATAL ERROR on binding&quot;);
+            exit@PLT(0x1);
+    }
+    listen@PLT(var_52, 0x5);
+    var_44 = 0x10;
+    var_56 = accept@PLT(var_52, &amp;var_76, &amp;var_44);
+    close@PLT(var_52);
+    if (var_56 &lt; 0x0) {
+            perror@PLT(&quot;FATAL ERROR on accept&quot;);
+            exit@PLT(0x1);
+    }
+    eax = var_56;
+    edx = var_92 ^ *0x14;
+    if (CPU_FLAGS &amp; E) {
+            eax = __stack_chk_fail@PLT();
+    }
+    return eax;
+}
+</pre></div>
+
+
+<p>This function looks complicated, but keep in mind we don't need to understand every detail. Seeing the functions called, we guess it's creating a socket and listening on a new port. All we have to do is guess which one. Resist the temptation of bruteforcing, we can do better! <code>htons</code> is used to convert a port number (or anything else) from host- to network byte order. This means that the data we need is its argument.</p>
+<p><code>*(arg_offset_x0 * 0x4 + 0x8049ac4)) &amp; 0xffff)</code> is taking the port number from an offset of the address <code>0x8049ac4</code>. The <code>&amp; 0xffff</code> is ignoring the higher bits of the data, since a port number is <a href="https://en.wikipedia.org/wiki/Port_(computer_networking)#Technical_details">ranging from 1 to 65535</a>. <code>arg_offset_x0</code> is the loop counter passed from the previous function, (<code>\+ 1</code>, see line <code>arg_offset_x0 = arg_offset_x0 + 0x1;</code>.</p>
+<p>Since an <code>int</code> is 4 bytes long, the <code>htons</code> call looks like <code>port = htons(port_list[counter + 1])</code>, with <code>port_list</code> living at <code>0x8049ac4</code>.</p>
+<p>By default, hopper shows <code>0x8049ac4</code> as one-byte data, in hex representation.<br />
+<img alt="ports in hex" src="resources/cysca_portknock/ports_in_data_hex.png" /></p>
+<p>We can display the data in a more port looking way. Select the first address containing only one byte, and press <code>D</code> three time to set the data size to 4 bytes. Repeat for the four next ports in list.</p>
+<p>We can now toggle the representation to decimal instead of hex, and the port list is ours!<br />
+<img alt="ports in decimal" src="resources/cysca_portknock/ports_in_data_dec.png" /></p>
+<h3>Wrapping up</h3>
+<ul>
+<li>The first stage of the portknock is listening on port 3422</li>
+<li>It sends a 4 bytes value when we connect, and expects a specific response to go on.</li>
+<li>The next stage opens a new connections on a different port, and resend a challenge.</li>
+<li>When the challenge-response has been done 5 times, the portknock sends the flag.</li>
+</ul>
+<p>Here's the code that performs this sequence:</p>
+<div class="codehilite"><pre><span class="kn">import</span> <span class="nn">socket</span><span class="o">,</span> <span class="nn">struct</span><span class="o">,</span> <span class="nn">time</span>
+
+<span class="k">def</span> <span class="nf">mangle</span><span class="p">(</span><span class="n">rand</span><span class="p">,</span> <span class="n">counter</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">counter</span> <span class="o">&amp;</span> <span class="mh">0x1</span> <span class="o">==</span> <span class="mh">0x0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">counter</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">rand</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">counter</span> <span class="o">+</span> <span class="n">rand</span>
+
+<span class="n">KNOCK_SERVER_IP</span> <span class="o">=</span> <span class="s">&quot;192.168.0.105&quot;</span>
+<span class="n">ports</span> <span class="o">=</span> <span class="p">[</span><span class="mi">3422</span><span class="p">,</span> <span class="mi">4532</span><span class="p">,</span> <span class="mi">5923</span><span class="p">,</span> <span class="mi">2342</span><span class="p">,</span> <span class="mi">5532</span><span class="p">]</span>  <span class="c"># the list of knocked port, extracted from the binary</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">port</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">ports</span><span class="p">):</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;+ Knocking on&quot;</span><span class="p">,</span> <span class="n">port</span><span class="p">)</span>
+
+    <span class="c"># create a TCP socket and connect to the portknock server</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">socket</span><span class="o">.</span><span class="n">socket</span><span class="p">(</span><span class="n">socket</span><span class="o">.</span><span class="n">AF_INET</span><span class="p">,</span> <span class="n">socket</span><span class="o">.</span><span class="n">SOCK_STREAM</span><span class="p">)</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">connect</span><span class="p">((</span><span class="n">KNOCK_SERVER_IP</span><span class="p">,</span> <span class="n">port</span><span class="p">))</span>
+
+    <span class="c"># receive and unpack the challenge</span>
+    <span class="n">buf</span> <span class="o">=</span>  <span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">4096</span><span class="p">)</span>
+    <span class="n">received</span><span class="p">,</span> <span class="o">=</span>  <span class="n">struct</span><span class="o">.</span><span class="n">unpack</span><span class="p">(</span><span class="s">&#39;&lt;i&#39;</span><span class="p">,</span> <span class="n">buf</span><span class="p">)</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;+ Received challenge value:&quot;</span><span class="p">,</span> <span class="n">received</span><span class="p">)</span>
+
+    <span class="n">send_me</span> <span class="o">=</span> <span class="n">mangle</span><span class="p">(</span><span class="n">received</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;+ Sending response&quot;</span><span class="p">,</span> <span class="n">send_me</span><span class="p">)</span>
+    <span class="n">s</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">struct</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="s">&#39;&lt;i&#39;</span><span class="p">,</span> <span class="n">send_me</span><span class="p">))</span>
+
+    <span class="c"># the VM is really slow to open a new socket, we need to wait a bit</span>
+    <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.1</span><span class="p">)</span>
+
+<span class="c"># we&#39;re in the last stage of the knock</span>
+<span class="c"># receive and print the flag</span>
+<span class="n">buf</span> <span class="o">=</span>  <span class="n">s</span><span class="o">.</span><span class="n">recv</span><span class="p">(</span><span class="mi">4096</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;+ Got flag:&quot;</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">buf</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+</pre></div>
+
+
+<p>The <code>'&lt;i'</code> format means we’re packing or unpacking a little endian signed integer.</p>
+<p>It's working!</p>
+<div class="codehilite"><pre>$ python3 knock_it_up.py 
++ Knocking on 3422
++ Received challenge value # 0 : 92
++ Sending response 184
++ Knocking on 4532
++ Received challenge value # 1 : 88
++ Sending response 91
++ Knocking on 5923
++ Received challenge value # 2 : 65
++ Sending response 260
++ Knocking on 2342
++ Received challenge value # 3 : 1
++ Sending response 6
++ Knocking on 5532
++ Received challenge value # 4 : 109
++ Sending response 654
++ Got flag:
+DemonViolatePride346
+</pre></div><footer> 
+	Inaccuracies? Want to discuss something? <a href="mailto:toastedcornflakes@gmail.com">Get in touch</a>.
+</footer>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Fuzzing capstone using AFL persistent mode</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav>// <a href=/>Home</a> // <a href=/about.html>About me</a> // <a href="https://github.com/toastedcornflakes">Github</a> // <div class="subtitle">— Now with 30% more cyber!</div></nav>
+<h1>Fuzzing capstone using AFL persistent mode</h1>
+<p>Fuzzing is an automated testing technique that involves sending arbitrary input to a program and monitoring its input. It's a way to test for reliability as well as identify potential security bugs. Compared to manual auditing, fuzzing will only uncover real bugs, that are actually reachable. </p>
+<p>Today we are fuzzing <a href="http://www.capstone-engine.org">capstone</a>. It's an open-source disassembly engine widely, used in exploitation frameworks, disassemblers, debugging aids and other projects.</p>
+<p>The fuzzer we'll use is the hot new thing: <a href="https://lcamtuf.coredump.cx/afl/">American Fuzzy Lop</a>, AFL for short, a fuzzer that uses runtime guided techniques to create input for the tested program.</p>
+<h2>Overview of the fuzzing process</h2>
+<p>AFL's usual operation mode goes like this:</p>
+<ul>
+<li>Start (fork) a new process</li>
+<li>Feed it some input, chosen at random, or mixed from other test cases. </li>
+<li>Monitor the code and register which path are touched by the input. Internally, it uses edge coverage and hit counts. For deeper information on the subject, see <a href="http://lcamtuf.coredump.cx/afl/technical_details.txt">AFL's thechnical details.</a>.</li>
+</ul>
+<h2>Writing a test harness</h2>
+<p>Let's write a test harness for that. We'll keep it simple: input from stdin, and test only a small part of the library.</p>
+<div class="codehilite"><pre><span class="cp">#include &lt;stdlib.h&gt;</span>
+<span class="cp">#include &lt;unistd.h&gt;</span>
+
+<span class="cp">#include &quot;capstone/include/capstone.h&quot;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+    <span class="c1">// The buffer we will pass to the library</span>
+    <span class="kt">uint8_t</span> <span class="n">buf</span><span class="p">[</span><span class="mi">128</span><span class="p">];</span>
+
+    <span class="kt">ssize_t</span> <span class="n">read_bytes</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">stdin</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="mi">128</span><span class="p">);</span>
+
+    <span class="n">csh</span> <span class="n">handle</span><span class="p">;</span>
+    <span class="n">cs_insn</span> <span class="o">*</span><span class="n">insn</span><span class="p">;</span>
+
+    <span class="kt">size_t</span> <span class="n">count</span><span class="p">;</span>
+
+    <span class="c1">// Give the input to the library</span>
+    <span class="c1">// We could also fuzz other architectures or modes</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">cs_open</span><span class="p">(</span><span class="n">CS_ARCH_X86</span><span class="p">,</span> <span class="n">CS_MODE_64</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">handle</span><span class="p">)</span> <span class="o">==</span> <span class="n">CS_ERR_OK</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">cs_disasm</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">read_bytes</span><span class="p">,</span> <span class="mh">0x1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">insn</span><span class="p">);</span>
+        <span class="n">cs_free</span><span class="p">(</span><span class="n">insn</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="n">cs_close</span><span class="p">(</span><span class="o">&amp;</span><span class="n">handle</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Let's run this with a random file as base. This is not ideal, but since the input is really small, the magic of the instrumentation should start to discover interesting values and branches pretty fast. </p>
+<p>To compile this you'll need to install <a href="https://lcamtuf.coredump.cx/afl/">AFL</a>, clang and llvm.</p>
+<div class="codehilite"><pre># compile an instrumented version of capstone
+git clone https://github.com/aquynh/capstone.git
+cd capstone
+CC=afl-clang-fast ./make.sh
+cd ..
+
+# compile and link our test harness using capstone&#39;s static library
+afl-clang-fast -static harness.c capstone/libcapstone.a -o harness
+
+# generate inputs
+mkdir inputs
+dd if=/dev/random of=inputs/rand bs=64 count=1
+afl-fuzz -i inputs -o findings ./harness
+</pre></div>
+
+
+<p><img alt="first harness run" src="resources/fuzzing_capstone/harness_run.png" /></p>
+<p>So far so good, AFL is running about 3.8k test/second, on just one core.</p>
+<h2>Speeding things up: enter <code>AFL_PERSISTENT_MODE</code>.</h2>
+<p>AFL has various tricks to speed up the fork step, but forking a process every time we want to test an input is still pretty slow. What if we could skip it entirely, and reuse the same process multiple times?</p>
+<p>We are going to use AFL's in-process fuzzing. This time, we don't restart a new process for each new input. This will be <em>really</em> faster.</p>
+<p>To do so, the test harness is a bit more complex:</p>
+<ol>
+<li>setup the library</li>
+<li>feed it some input </li>
+<li>tear down the library</li>
+<li>wait for AFL's 'go' (using unix signals)</li>
+<li>start again, in the same process, without any <code>fork</code> involved.</li>
+</ol>
+<p>Here's the code for that:</p>
+<div class="codehilite"><pre><span class="cp">#include &lt;stdlib.h&gt;</span>
+<span class="cp">#include &lt;unistd.h&gt;</span>
+<span class="cp">#include &lt;signal.h&gt;</span>
+<span class="cp">#include &lt;string.h&gt;</span>
+
+<span class="cp">#include &quot;capstone/include/capstone.h&quot;</span>
+<span class="cp">#include &lt;inttypes.h&gt;</span>
+
+<span class="cp">#define PERSIST_MAX 100000</span>
+
+<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">persist_cnt</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
+
+    <span class="n">csh</span> <span class="n">handle</span><span class="p">;</span>
+    <span class="n">cs_insn</span> <span class="o">*</span><span class="n">insn</span><span class="p">;</span>
+    <span class="kt">size_t</span> <span class="n">count</span><span class="p">;</span>
+    <span class="kt">uint8_t</span> <span class="n">buf</span><span class="p">[</span><span class="mi">128</span><span class="p">];</span> 
+    <span class="kt">ssize_t</span> <span class="n">read_bytes</span><span class="p">;</span>
+
+<span class="nl">try_again</span><span class="p">:</span>
+    <span class="c1">// (re-) initialize the library and read new input</span>
+    <span class="n">read_bytes</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span> 
+    <span class="n">memset</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">128</span><span class="p">);</span>
+    <span class="n">read_bytes</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">STDIN_FILENO</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="mi">128</span><span class="p">);</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">cs_open</span><span class="p">(</span><span class="n">CS_ARCH_X86</span><span class="p">,</span> <span class="n">CS_MODE_64</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">handle</span><span class="p">)</span> <span class="o">==</span> <span class="n">CS_ERR_OK</span><span class="p">)</span> <span class="p">{</span>
+        <span class="c1">// We want to fuzz the detail too</span>
+        <span class="n">cs_option</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">CS_OPT_DETAIL</span><span class="p">,</span> <span class="n">CS_OPT_ON</span><span class="p">);</span> 
+        <span class="c1">// disassemble the bytes we just read using capstone</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="n">cs_disasm</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">read_bytes</span><span class="p">,</span> <span class="mh">0x1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">insn</span><span class="p">);</span>
+
+        <span class="c1">// Don&#39;t leak memory. This is especially important in persistent mode, </span>
+        <span class="c1">// because we reuse the process a significant number of times</span>
+        <span class="n">cs_free</span><span class="p">(</span><span class="n">insn</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span> 
+    <span class="p">}</span>
+    <span class="n">cs_close</span><span class="p">(</span><span class="o">&amp;</span><span class="n">handle</span><span class="p">);</span>
+
+    <span class="c1">// signal successful completion of a run using SIGSTOP, and</span>
+    <span class="c1">// update the number of runs we had, and run again</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">persist_cnt</span><span class="o">++</span> <span class="o">&lt;</span> <span class="n">PERSIST_MAX</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">raise</span><span class="p">(</span><span class="n">SIGSTOP</span><span class="p">);</span>
+        <span class="k">goto</span> <span class="n">try_again</span><span class="p">;</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The <code>max_persist_count</code> tricks ensures we regularly quit the process (AFL relauch it after). This ensure that a memory leak won't fill up the RAM.</p>
+<p>Let's try it out!</p>
+<div class="codehilite"><pre>export AFL_PERSISTENT=1
+afl-clang-fast -static harness_persistent.c capstone/libcapstone.a -o harness_persistent
+afl-fuzz -i inputs -o findings ./harness_persistent
+</pre></div>
+
+
+<p><img alt="persistent harness run" src="resources/fuzzing_capstone/harness_persistent_run.png" /></p>
+<p>Twice faster! Pretty good for 10 minute fiddling. The VM I'm running this is dual core, so we can run one AFL instance per core:</p>
+<div class="codehilite"><pre>afl-fuzz -i inputs -o findings -M master ./fuzz_capstone
+# In another tmux
+afl-fuzz -i inputs -o multi_sync -S slave1 ./fuzz_capstone
+
+# and in another pane we can get the summary stats
+afl-whatsup
+
+[...]
+Summary stats
+=============
+
+       Fuzzers alive : 2
+      Total run time : 0 days, 0 hours
+         Total execs : 25 million
+    Cumulative speed : 26432 execs/sec
+       Pending paths : 1 faves, 4148 total
+  Pending per fuzzer : 0 faves, 2074 total (on average)
+       Crashes found : 0 locally unique
+</pre></div>
+
+
+<p>I let that run overnight and actually found a bug. More on that in the next part, along with analysis  of what we found, using AFL's tools (cmin, tmin, crash exploration mode), gdb and <a href="https://github.com/bnagy/crashwalk">crashwalk</a>.</p>
+<h2>Rundown</h2>
+<p>In this article we  </p>
+<ul>
+<li>wrote a basic test harness for AFL, using stdio</li>
+<li>made a slightly more complicated harness that is persistent, and twice faster</li>
+<li>ran the fuzzer</li>
+</ul><footer> 
+	Inaccuracies? Want to discuss something? <a href="mailto:toastedcornflakes@gmail.com">Get in touch</a>.
+</footer>
+</body>
+</html>
