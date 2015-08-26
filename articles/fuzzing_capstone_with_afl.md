@@ -1,8 +1,8 @@
 Fuzzing capstone using AFL persistent mode
 
-Fuzzing is an automated testing technique that involves sending arbitrary input to a program and monitoring its input. It's a way to test for reliability as well as identify potential security bugs. Compared to manual auditing, fuzzing will only uncover real bugs, that are actually reachable. 
+Fuzzing is an automated testing technique that involves sending arbitrary input to a program and monitoring its input. It's a way to test for reliability as well as identify potential security bugs. Compared to manual auditing, fuzzing will only uncover real bugs that are actually reachable. 
 
-Today we are fuzzing [capstone](http://www.capstone-engine.org). It's an open-source disassembly engine widely, used in exploitation frameworks, disassemblers, debugging aids and other projects.
+Today we are fuzzing [capstone](http://www.capstone-engine.org). It's an open-source disassembly engine widely used in exploitation frameworks, disassemblers, debugging aids and other projects.
 
 The fuzzer we'll use is the hot new thing: [American Fuzzy Lop](https://lcamtuf.coredump.cx/afl/), AFL for short, a fuzzer that uses runtime guided techniques to create input for the tested program.
 

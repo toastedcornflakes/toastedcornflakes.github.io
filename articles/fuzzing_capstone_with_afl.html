@@ -9,8 +9,8 @@
 <body>
 <nav>// <a href=/>Home</a> // <a href=/about.html>About me</a> // <a href="https://github.com/toastedcornflakes">Github</a> // <div class="subtitle">— Now with 30% more cyber!</div></nav>
 <h1>Fuzzing capstone using AFL persistent mode</h1>
-<p>Fuzzing is an automated testing technique that involves sending arbitrary input to a program and monitoring its input. It's a way to test for reliability as well as identify potential security bugs. Compared to manual auditing, fuzzing will only uncover real bugs, that are actually reachable. </p>
-<p>Today we are fuzzing <a href="http://www.capstone-engine.org">capstone</a>. It's an open-source disassembly engine widely, used in exploitation frameworks, disassemblers, debugging aids and other projects.</p>
+<p>Fuzzing is an automated testing technique that involves sending arbitrary input to a program and monitoring its input. It's a way to test for reliability as well as identify potential security bugs. Compared to manual auditing, fuzzing will only uncover real bugs that are actually reachable. </p>
+<p>Today we are fuzzing <a href="http://www.capstone-engine.org">capstone</a>. It's an open-source disassembly engine widely used in exploitation frameworks, disassemblers, debugging aids and other projects.</p>
 <p>The fuzzer we'll use is the hot new thing: <a href="https://lcamtuf.coredump.cx/afl/">American Fuzzy Lop</a>, AFL for short, a fuzzer that uses runtime guided techniques to create input for the tested program.</p>
 <h2>Overview of the fuzzing process</h2>
 <p>AFL's usual operation mode goes like this:</p>
