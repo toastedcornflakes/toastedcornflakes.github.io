@@ -17,7 +17,7 @@
 <ul>
 <li>Start (fork) a new process</li>
 <li>Feed it some input, chosen at random, or mixed from other test cases. </li>
-<li>Monitor the code and register which path are touched by the input. Internally, it uses edge coverage and hit counts. For deeper information on the subject, see <a href="http://lcamtuf.coredump.cx/afl/technical_details.txt">AFL's thechnical details.</a>.</li>
+<li>Monitor the code and register which path are touched by the input. Internally, it uses edge coverage and hit counts. For deeper information on the subject, see <a href="http://lcamtuf.coredump.cx/afl/technical_details.txt">AFL's technical details.</a>.</li>
 </ul>
 <h2>Writing a test harness</h2>
 <p>Let's write a test harness for that. We'll keep it simple: input from stdin, and test only a small part of the library.</p>
@@ -131,7 +131,7 @@ afl-fuzz -i inputs -o findings ./harness
 </pre></div>
 
 
-<p>The <code>max_persist_count</code> tricks ensures we regularly quit the process (AFL relauch it after). This ensure that a memory leak won't fill up the RAM.</p>
+<p>The <code>max_persist_count</code> tricks ensures we regularly quit the process (AFL relaunch it after). This ensure that a memory leak won't fill up the RAM.</p>
 <p>Let's try it out!</p>
 <div class="codehilite"><pre>export AFL_PERSISTENT=1
 afl-clang-fast -static harness_persistent.c capstone/libcapstone.a -o harness_persistent

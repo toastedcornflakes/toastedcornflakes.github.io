@@ -9,7 +9,7 @@
 <body>
 <nav>// <a href=/>Home</a> // <a href=/about.html>About me</a> // <a href="https://github.com/toastedcornflakes">Github</a> // <div class="subtitle">— Now with 30% more cyber!</div></nav>
 <h1>Static analysis of CySCA 2014 portknock using Hopper Disassembler</h1>
-<p><a href="https://www.cyberchallenge.com.au/">CySCA</a> is a Capure The Flag with challenges ranging from crypto to reverse engineering, and from forensic to web pentest. You can get all the challenges in a <a href="https://www.vulnhub.com/entry/cysca-cysca2014-in-a-box,94/">VM</a>, or just this <a href="resources/cysca_portknock/488f866ad090d0843657f322e516168a-re02">binary</a>.</p>
+<p><a href="https://www.cyberchallenge.com.au/">CySCA</a> is a Capture The Flag with challenges ranging from crypto to reverse engineering, and from forensic to web pentest. You can get all the challenges in a <a href="https://www.vulnhub.com/entry/cysca-cysca2014-in-a-box,94/">VM</a>, or just this <a href="resources/cysca_portknock/488f866ad090d0843657f322e516168a-re02">binary</a>.</p>
 <p>We're going to analyze the second reverse engineering challenge, and try to capture the flag. As an added difficulty, we're going to restrict ourselves to static analysis. This means no logs, no debugger, only disassembly.</p>
 <h3>First recon</h3>
 <p>Let's see what we can get without diving into disassembly.</p>
@@ -93,7 +93,7 @@ ERROR: Unable to open urandom
 <img alt="main disassembly" src="resources/cysca_portknock/main.png" /></p>
 <p>Let's jump to the next function, <code>sub_8048f9a</code>. Since the control flow is more complex than <code>main</code>, hopper's graph-view comes in handy:<br />
 <img alt="server disassembly in graph form" src="resources/cysca_portknock/server_graphview.png" /></p>
-<p>This looks like an infinite loop, since the last block unconditionnaly <code>jmp</code> up. The error handling is pretty bare bone and is handled by several block calling <code>exit</code>.</p>
+<p>This looks like an infinite loop, since the last block unconditionally <code>jmp</code> up. The error handling is pretty bare bone and is handled by several block calling <code>exit</code>.</p>
 <p>The first block is setting up a <code>socket</code>, and the next blocks call <code>bind</code>, <code>listen</code> and <code>accept</code>. The daemon is thus listening for connections.</p>
 <p>The port <code>bind</code>ed by the server is set with the following disassembly:</p>
 <div class="codehilite"><pre>mov     eax, dword [0x8049ac4]        ; load port number from DATA segment into eax
@@ -160,7 +160,7 @@ Ncat: Connected to 192.168.0.104:3422.
 
 <p>The previous instruction is a call to <code>exit</code>. Since <code>exit</code> never returns, the compiler didn't generate a function epilogue (no <code>ret</code> instruction). Since Hopper doesn't know that the function has ended, it extends the procedure to the next epilogue, at <code>0x080491f3</code>.</p>
 <p>To get the decompilation to work accurately, mark <code>0x080491c5</code> as a procedure. Doing so, the previous function doesn't see any epilogue anymore, so mark <code>sub_804919c</code> as a procedure again.</p>
-<p>We can finally use the pseudo-code feature of Hopper on the portknock function and all its subfunctions:</p>
+<p>We can finally use the pseudo-code feature of Hopper on the portknock function and all its sub-functions:</p>
 <div class="codehilite"><pre>function sub_80491f4 {
     var_36 = arg_offset_x0;
     eax = puts@PLT(&quot;portknockd: New Client. Waiting for knocks&quot;);

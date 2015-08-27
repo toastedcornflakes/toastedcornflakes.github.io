@@ -12,7 +12,7 @@ AFL's usual operation mode goes like this:
 
 * Start (fork) a new process
 * Feed it some input, chosen at random, or mixed from other test cases. 
-* Monitor the code and register which path are touched by the input. Internally, it uses edge coverage and hit counts. For deeper information on the subject, see [AFL's thechnical details.](http://lcamtuf.coredump.cx/afl/technical_details.txt).
+* Monitor the code and register which path are touched by the input. Internally, it uses edge coverage and hit counts. For deeper information on the subject, see [AFL's technical details.](http://lcamtuf.coredump.cx/afl/technical_details.txt).
 
 
 # Writing a test harness
@@ -135,7 +135,7 @@ Here's the code for that:
 		return 0;
 	}
 
-The `max_persist_count` tricks ensures we regularly quit the process (AFL relauch it after). This ensure that a memory leak won't fill up the RAM.
+The `max_persist_count` tricks ensures we regularly quit the process (AFL relaunch it after). This ensure that a memory leak won't fill up the RAM.
 
 Let's try it out!
 

@@ -1,6 +1,6 @@
 Static analysis of CySCA 2014 portknock using Hopper Disassembler
 
-[CySCA](https://www.cyberchallenge.com.au/) is a Capure The Flag with challenges ranging from crypto to reverse engineering, and from forensic to web pentest. You can get all the challenges in a [VM](https://www.vulnhub.com/entry/cysca-cysca2014-in-a-box,94/), or just this [binary](resources/cysca_portknock/488f866ad090d0843657f322e516168a-re02).
+[CySCA](https://www.cyberchallenge.com.au/) is a Capture The Flag with challenges ranging from crypto to reverse engineering, and from forensic to web pentest. You can get all the challenges in a [VM](https://www.vulnhub.com/entry/cysca-cysca2014-in-a-box,94/), or just this [binary](resources/cysca_portknock/488f866ad090d0843657f322e516168a-re02).
 
 We're going to analyze the second reverse engineering challenge, and try to capture the flag. As an added difficulty, we're going to restrict ourselves to static analysis. This means no logs, no debugger, only disassembly.
 
@@ -101,7 +101,7 @@ After renaming the privilege-dropping function, `main` looks like this:
 Let's jump to the next function, `sub_8048f9a`. Since the control flow is more complex than `main`, hopper's graph-view comes in handy:  
 ![server disassembly in graph form](resources/cysca_portknock/server_graphview.png)
 
-This looks like an infinite loop, since the last block unconditionnaly `jmp` up. The error handling is pretty bare bone and is handled by several block calling `exit`.
+This looks like an infinite loop, since the last block unconditionally `jmp` up. The error handling is pretty bare bone and is handled by several block calling `exit`.
 
 The first block is setting up a `socket`, and the next blocks call `bind`, `listen` and `accept`. The daemon is thus listening for connections.
 
@@ -180,7 +180,7 @@ The previous instruction is a call to `exit`. Since `exit` never returns, the co
 
 To get the decompilation to work accurately, mark `0x080491c5` as a procedure. Doing so, the previous function doesn't see any epilogue anymore, so mark `sub_804919c` as a procedure again.
 
-We can finally use the pseudo-code feature of Hopper on the portknock function and all its subfunctions:
+We can finally use the pseudo-code feature of Hopper on the portknock function and all its sub-functions:
 
 
     :::text
