@@ -16,7 +16,7 @@ AFL's usual operation mode goes like this:
 
 Internally, AFL checks if that input made the program reach new code path (either completely new blocks, or different sequence of blocks). If this is the case, the input is marked as 'interesting' and will be reused and remixed with other random or interesting inputs to try to reach deeper code path in the program, and yield more coverage.
 
-To achieve runtime monitoring, AFL will inject code at compile time by substituting `gcc` or `clang` with `afl-gcc`/`afl-clang`.
+To achieve runtime monitoring, AFL will inject code at compile time. This is done by substituting `gcc` or `clang` with AFL's wrappers: `afl-gcc` and `afl-clang`. The wrapper will call the normal compiler, then add the instrumentation code and produce a binary that can be monitored by `afl-fuzz`.
 
 If you want to get a more thorough understanding of AFL's code coverage and how it generates new input, see [AFL's technical details.](http://lcamtuf.coredump.cx/afl/technical_details.txt).
 

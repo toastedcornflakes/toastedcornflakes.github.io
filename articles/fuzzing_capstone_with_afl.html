@@ -20,7 +20,7 @@
 <li>Monitor the code and register which path are reached using this particular input</li>
 </ul>
 <p>Internally, AFL checks if that input made the program reach new code path (either completely new blocks, or different sequence of blocks). If this is the case, the input is marked as 'interesting' and will be reused and remixed with other random or interesting inputs to try to reach deeper code path in the program, and yield more coverage.</p>
-<p>To achieve runtime monitoring, AFL will inject code at compile time by substituting <code>gcc</code> or <code>clang</code> with <code>afl-gcc</code>/<code>afl-clang</code>.</p>
+<p>To achieve runtime monitoring, AFL will inject code at compile time. This is done by substituting <code>gcc</code> or <code>clang</code> with AFL's wrappers: <code>afl-gcc</code> and <code>afl-clang</code>. The wrapper will call the normal compiler, then add the instrumentation code and produce a binary that can be monitored by <code>afl-fuzz</code>.</p>
 <p>If you want to get a more thorough understanding of AFL's code coverage and how it generates new input, see <a href="http://lcamtuf.coredump.cx/afl/technical_details.txt">AFL's technical details.</a>.</p>
 <h2>Writing a test harness</h2>
 <p>Let's write a test harness for the library we test, capstone. We'll keep it simple: input from stdin, and test only a small part of the library.</p>
