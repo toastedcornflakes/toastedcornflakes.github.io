@@ -13,6 +13,8 @@ for index in "${!articles[@]}"; do
 	filename="${filename%.*}"
 	title=$(head -n 1 $i)
 	echo "[$(($index+1))/${#articles[@]}] Processing $i"
+	# Spell check of the md file
+	aspell -c $i
 	# Please forgive me
 	(sed "s/page_html_title/$title/g" header.html; tail -n +2 $i | sed "s/^#/##/g" | python -m markdown -x codehilite ; cat footer.html) > $filename.html
 done
