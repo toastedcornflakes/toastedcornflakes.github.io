@@ -9,18 +9,21 @@
 <body>
 <nav>// <a href=/>Home</a> // <a href=/about.html>About me</a> // <a href="https://github.com/toastedcornflakes">Github</a> // <div class="subtitle">— Now with 30% more cyber!</div></nav>
 <h1>Fuzzing capstone using AFL persistent mode</h1>
-<p>Fuzzing is an automated testing technique that involves sending arbitrary input to a program and monitoring its input. It's a way to test for reliability as well as identify potential security bugs. Compared to manual auditing, fuzzing will only uncover real bugs that are actually reachable. </p>
+<p>Fuzzing is an automated testing technique that involves automatically sending input to a program and monitoring its output. It's a way to test for reliability as well as identify potential security bugs. Compared to manual auditing, fuzzing will only uncover real bugs that are actually reachable. </p>
 <p>Today we are fuzzing <a href="http://www.capstone-engine.org">capstone</a>. It's an open-source disassembly engine widely used in exploitation frameworks, disassemblers, debugging aids and other projects.</p>
 <p>The fuzzer we'll use is the hot new thing: <a href="https://lcamtuf.coredump.cx/afl/">American Fuzzy Lop</a>, AFL for short, a fuzzer that uses runtime guided techniques to create input for the tested program.</p>
 <h2>Overview of the fuzzing process</h2>
 <p>AFL's usual operation mode goes like this:</p>
 <ul>
 <li>Start (fork) a new process</li>
-<li>Feed it some input, chosen at random, or mixed from other test cases. </li>
-<li>Monitor the code and register which path are touched by the input. Internally, it uses edge coverage and hit counts. For deeper information on the subject, see <a href="http://lcamtuf.coredump.cx/afl/technical_details.txt">AFL's technical details.</a>.</li>
+<li>Feed it some well chosen input</li>
+<li>Monitor the code and register which path are reached using this particular input</li>
 </ul>
+<p>Internally, AFL checks if that input made the program reach new code path (either completely new blocks, or different sequence of blocks). If this is the case, the input is marked as 'interesting' and will be reused and remixed with other random or interesting inputs to try to reach deeper code path in the program, and yield more coverage.</p>
+<p>To achieve runtime monitoring, AFL will inject code at compile time by substituting <code>gcc</code> or <code>clang</code> with <code>afl-gcc</code>/<code>afl-clang</code>.</p>
+<p>If you want to get a more thorough understanding of AFL's code coverage and how it generates new input, see <a href="http://lcamtuf.coredump.cx/afl/technical_details.txt">AFL's technical details.</a>.</p>
 <h2>Writing a test harness</h2>
-<p>Let's write a test harness for that. We'll keep it simple: input from stdin, and test only a small part of the library.</p>
+<p>Let's write a test harness for the library we test, capstone. We'll keep it simple: input from stdin, and test only a small part of the library.</p>
 <div class="codehilite"><pre><span class="cp">#include &lt;stdlib.h&gt;</span>
 <span class="cp">#include &lt;unistd.h&gt;</span>
 
@@ -131,7 +134,7 @@ afl-fuzz -i inputs -o findings ./harness
 </pre></div>
 
 
-<p>The <code>max_persist_count</code> tricks ensures we regularly quit the process (AFL relaunch it after). This ensure that a memory leak won't fill up the RAM.</p>
+<p>The <code>max_persist_count</code> tricks ensures we regularly quit the process (AFL will relaunch it automatically). This ensure that a memory leak won't fill up the RAM.</p>
 <p>Let's try it out!</p>
 <div class="codehilite"><pre>export AFL_PERSISTENT=1
 afl-clang-fast -static harness_persistent.c capstone/libcapstone.a -o harness_persistent

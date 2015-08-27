@@ -1,6 +1,6 @@
 Fuzzing capstone using AFL persistent mode
 
-Fuzzing is an automated testing technique that involves sending arbitrary input to a program and monitoring its input. It's a way to test for reliability as well as identify potential security bugs. Compared to manual auditing, fuzzing will only uncover real bugs that are actually reachable. 
+Fuzzing is an automated testing technique that involves automatically sending input to a program and monitoring its output. It's a way to test for reliability as well as identify potential security bugs. Compared to manual auditing, fuzzing will only uncover real bugs that are actually reachable. 
 
 Today we are fuzzing [capstone](http://www.capstone-engine.org). It's an open-source disassembly engine widely used in exploitation frameworks, disassemblers, debugging aids and other projects.
 
@@ -11,12 +11,18 @@ The fuzzer we'll use is the hot new thing: [American Fuzzy Lop](https://lcamtuf.
 AFL's usual operation mode goes like this:
 
 * Start (fork) a new process
-* Feed it some input, chosen at random, or mixed from other test cases. 
-* Monitor the code and register which path are touched by the input. Internally, it uses edge coverage and hit counts. For deeper information on the subject, see [AFL's technical details.](http://lcamtuf.coredump.cx/afl/technical_details.txt).
+* Feed it some well chosen input
+* Monitor the code and register which path are reached using this particular input
+
+Internally, AFL checks if that input made the program reach new code path (either completely new blocks, or different sequence of blocks). If this is the case, the input is marked as 'interesting' and will be reused and remixed with other random or interesting inputs to try to reach deeper code path in the program, and yield more coverage.
+
+To achieve runtime monitoring, AFL will inject code at compile time by substituting `gcc` or `clang` with `afl-gcc`/`afl-clang`.
+
+If you want to get a more thorough understanding of AFL's code coverage and how it generates new input, see [AFL's technical details.](http://lcamtuf.coredump.cx/afl/technical_details.txt).
 
 
 # Writing a test harness
-Let's write a test harness for that. We'll keep it simple: input from stdin, and test only a small part of the library.
+Let's write a test harness for the library we test, capstone. We'll keep it simple: input from stdin, and test only a small part of the library.
 
 
 	:::c
@@ -135,7 +141,7 @@ Here's the code for that:
 		return 0;
 	}
 
-The `max_persist_count` tricks ensures we regularly quit the process (AFL relaunch it after). This ensure that a memory leak won't fill up the RAM.
+The `max_persist_count` tricks ensures we regularly quit the process (AFL will relaunch it automatically). This ensure that a memory leak won't fill up the RAM.
 
 Let's try it out!
 
