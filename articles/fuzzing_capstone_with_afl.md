@@ -152,7 +152,7 @@ Let's try it out!
 
 ![persistent harness run](resources/fuzzing_capstone/harness_persistent_run.png)
 
-Twice faster! Pretty good for 10 minute fiddling. The VM I'm running this is dual core, so we can run one AFL instance per core:
+Twice faster! Pretty good for a 5 lines change. The VM I'm running this is dual core, so we can run one AFL instance per core:
 
 	:::text
 	afl-fuzz -i inputs -o findings -M master ./fuzz_capstone
