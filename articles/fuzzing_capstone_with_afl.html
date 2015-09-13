@@ -132,8 +132,7 @@ afl-fuzz -i inputs -o findings ./harness
 
 <p>Using <code>while (__AFL_LOOP(1000))</code> run the test 1000 times before exiting and restarting the whole process. This way we ensure that we can't fill up the RAM with a memory leak.</p>
 <p>Let's try it out!</p>
-<div class="codehilite"><pre>export AFL_PERSISTENT=1
-afl-clang-fast -static harness_persistent.c capstone/libcapstone.a -o harness_persistent
+<div class="codehilite"><pre>afl-clang-fast -static harness_persistent.c capstone/libcapstone.a -o harness_persistent
 afl-fuzz -i inputs -o findings ./harness_persistent
 </pre></div>
 

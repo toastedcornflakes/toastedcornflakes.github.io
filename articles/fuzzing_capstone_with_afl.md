@@ -135,7 +135,6 @@ Using `while (__AFL_LOOP(1000))` run the test 1000 times before exiting and rest
 Let's try it out!
 
 	:::text
-	export AFL_PERSISTENT=1
 	afl-clang-fast -static harness_persistent.c capstone/libcapstone.a -o harness_persistent
 	afl-fuzz -i inputs -o findings ./harness_persistent
 
