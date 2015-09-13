@@ -81,7 +81,7 @@ So far so good, AFL is running about 3.8k test/second, on just one core.
 # Speeding things up: enter `AFL_PERSISTENT`.
 AFL has various tricks to speed up the fork step, but forking a process every time we want to test an input is still pretty slow. What if we could skip it entirely, and reuse the same process multiple times?
 
-We are going to use AFL's in-process fuzzing. This time, we don't restart a new process for each new input. This will be *really* faster.
+We are going to use AFL's in-process fuzzing. This time, we don't restart a new process for each new input. This will be *much* faster depending on the library.
 
 To do so, the test harness is a bit more complex:
 
@@ -89,7 +89,7 @@ To do so, the test harness is a bit more complex:
 2. feed it some input 
 3. tear down the library
 4. wait for AFL's 'go' (using unix signals)
-5.  start again, in the same process, without any `fork` involved.
+5. start again, in the same process, without any `fork` involved.
 
 Here's the code for that:
 
@@ -98,50 +98,39 @@ Here's the code for that:
 	#include <unistd.h>
 	#include <signal.h>
 	#include <string.h>
-
+	
 	#include "capstone/include/capstone.h"
 	#include <inttypes.h>
-
-	#define PERSIST_MAX 100000
-
-	unsigned int persist_cnt;
-
+	
+	
 	int main(int argc, char** argv) {
-
-		csh handle;
-		cs_insn *insn;
-		size_t count;
-		uint8_t buf[128]; 
-		ssize_t read_bytes;
-
-	try_again:
-		// (re-) initialize the library and read new input
-		read_bytes = -1; 
-		memset(buf, 0, 128);
-		read_bytes = read(STDIN_FILENO, buf, 128);
-
-		if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) == CS_ERR_OK) {
-			// We want to fuzz the detail too
-			cs_option(handle, CS_OPT_DETAIL, CS_OPT_ON); 
-			// disassemble the bytes we just read using capstone
-			count = cs_disasm(handle, buf, read_bytes, 0x1000, 0, &insn);
-
-			// Don't leak memory. This is especially important in persistent mode, 
-			// because we reuse the process a significant number of times
-			cs_free(insn, count); 
+	    csh handle;
+	    cs_insn *insn;
+	    size_t count;
+	    uint8_t buf[128]; 
+	    ssize_t read_bytes;
+	
+		while (__AFL_LOOP(1000)) {
+			// (re-) initialize the library and read new input
+			read_bytes = -1; 
+			memset(buf, 0, 128);
+			read_bytes = read(STDIN_FILENO, buf, 128);
+	
+			if (cs_open(CS_ARCH_X86, CS_MODE_64, &handle) == CS_ERR_OK) {
+				// disassemble the bytes we just read using capstone
+				count = cs_disasm(handle, buf, read_bytes, 0x1000, 0, &insn);
+	
+				// Don't leak memory. This is especially important in persistent mode, 
+				// because we reuse the process a significant number of times
+				cs_free(insn, count); 
+			}
+			cs_close(&handle);
 		}
-		cs_close(&handle);
-
-		// signal successful completion of a run using SIGSTOP, and
-		// update the number of runs we had, and run again
-		if (persist_cnt++ < PERSIST_MAX) {
-			raise(SIGSTOP);
-			goto try_again;
-		}
-		return 0;
+	    return 0;
 	}
 
-The `max_persist_count` tricks ensures we regularly quit the process (AFL will relaunch it automatically). This ensure that a memory leak won't fill up the RAM.
+Using `while (__AFL_LOOP(1000))` run the test 1000 times before exiting and restarting the whole process. This way we ensure that we can't fill up the RAM with a memory leak.
+
 
 Let's try it out!
 
@@ -152,7 +141,7 @@ Let's try it out!
 
 ![persistent harness run](resources/fuzzing_capstone/harness_persistent_run.png)
 
-Twice faster! Pretty good for a 5 lines change. The VM I'm running this is dual core, so we can run one AFL instance per core:
+Twice faster! Pretty good for a 3 lines change. The VM I'm running this is dual core, so we can run one AFL instance per core:
 
 	:::text
 	afl-fuzz -i inputs -o findings -M master ./fuzz_capstone

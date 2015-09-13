@@ -83,7 +83,7 @@ afl-fuzz -i inputs -o findings ./harness
 <p>So far so good, AFL is running about 3.8k test/second, on just one core.</p>
 <h2>Speeding things up: enter <code>AFL_PERSISTENT</code>.</h2>
 <p>AFL has various tricks to speed up the fork step, but forking a process every time we want to test an input is still pretty slow. What if we could skip it entirely, and reuse the same process multiple times?</p>
-<p>We are going to use AFL's in-process fuzzing. This time, we don't restart a new process for each new input. This will be <em>really</em> faster.</p>
+<p>We are going to use AFL's in-process fuzzing. This time, we don't restart a new process for each new input. This will be <em>much</em> faster depending on the library.</p>
 <p>To do so, the test harness is a bit more complex:</p>
 <ol>
 <li>setup the library</li>
@@ -101,48 +101,36 @@ afl-fuzz -i inputs -o findings ./harness
 <span class="cp">#include &quot;capstone/include/capstone.h&quot;</span>
 <span class="cp">#include &lt;inttypes.h&gt;</span>
 
-<span class="cp">#define PERSIST_MAX 100000</span>
-
-<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">persist_cnt</span><span class="p">;</span>
 
 <span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
-
     <span class="n">csh</span> <span class="n">handle</span><span class="p">;</span>
     <span class="n">cs_insn</span> <span class="o">*</span><span class="n">insn</span><span class="p">;</span>
     <span class="kt">size_t</span> <span class="n">count</span><span class="p">;</span>
     <span class="kt">uint8_t</span> <span class="n">buf</span><span class="p">[</span><span class="mi">128</span><span class="p">];</span> 
     <span class="kt">ssize_t</span> <span class="n">read_bytes</span><span class="p">;</span>
 
-<span class="nl">try_again</span><span class="p">:</span>
-    <span class="c1">// (re-) initialize the library and read new input</span>
-    <span class="n">read_bytes</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span> 
-    <span class="n">memset</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">128</span><span class="p">);</span>
-    <span class="n">read_bytes</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">STDIN_FILENO</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="mi">128</span><span class="p">);</span>
+    <span class="k">while</span> <span class="p">(</span><span class="n">__AFL_LOOP</span><span class="p">(</span><span class="mi">1000</span><span class="p">))</span> <span class="p">{</span>
+        <span class="c1">// (re-) initialize the library and read new input</span>
+        <span class="n">read_bytes</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span> 
+        <span class="n">memset</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">128</span><span class="p">);</span>
+        <span class="n">read_bytes</span> <span class="o">=</span> <span class="n">read</span><span class="p">(</span><span class="n">STDIN_FILENO</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="mi">128</span><span class="p">);</span>
 
-    <span class="k">if</span> <span class="p">(</span><span class="n">cs_open</span><span class="p">(</span><span class="n">CS_ARCH_X86</span><span class="p">,</span> <span class="n">CS_MODE_64</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">handle</span><span class="p">)</span> <span class="o">==</span> <span class="n">CS_ERR_OK</span><span class="p">)</span> <span class="p">{</span>
-        <span class="c1">// We want to fuzz the detail too</span>
-        <span class="n">cs_option</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">CS_OPT_DETAIL</span><span class="p">,</span> <span class="n">CS_OPT_ON</span><span class="p">);</span> 
-        <span class="c1">// disassemble the bytes we just read using capstone</span>
-        <span class="n">count</span> <span class="o">=</span> <span class="n">cs_disasm</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">read_bytes</span><span class="p">,</span> <span class="mh">0x1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">insn</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="n">cs_open</span><span class="p">(</span><span class="n">CS_ARCH_X86</span><span class="p">,</span> <span class="n">CS_MODE_64</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">handle</span><span class="p">)</span> <span class="o">==</span> <span class="n">CS_ERR_OK</span><span class="p">)</span> <span class="p">{</span>
+            <span class="c1">// disassemble the bytes we just read using capstone</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">cs_disasm</span><span class="p">(</span><span class="n">handle</span><span class="p">,</span> <span class="n">buf</span><span class="p">,</span> <span class="n">read_bytes</span><span class="p">,</span> <span class="mh">0x1000</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">insn</span><span class="p">);</span>
 
-        <span class="c1">// Don&#39;t leak memory. This is especially important in persistent mode, </span>
-        <span class="c1">// because we reuse the process a significant number of times</span>
-        <span class="n">cs_free</span><span class="p">(</span><span class="n">insn</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span> 
-    <span class="p">}</span>
-    <span class="n">cs_close</span><span class="p">(</span><span class="o">&amp;</span><span class="n">handle</span><span class="p">);</span>
-
-    <span class="c1">// signal successful completion of a run using SIGSTOP, and</span>
-    <span class="c1">// update the number of runs we had, and run again</span>
-    <span class="k">if</span> <span class="p">(</span><span class="n">persist_cnt</span><span class="o">++</span> <span class="o">&lt;</span> <span class="n">PERSIST_MAX</span><span class="p">)</span> <span class="p">{</span>
-        <span class="n">raise</span><span class="p">(</span><span class="n">SIGSTOP</span><span class="p">);</span>
-        <span class="k">goto</span> <span class="n">try_again</span><span class="p">;</span>
+            <span class="c1">// Don&#39;t leak memory. This is especially important in persistent mode, </span>
+            <span class="c1">// because we reuse the process a significant number of times</span>
+            <span class="n">cs_free</span><span class="p">(</span><span class="n">insn</span><span class="p">,</span> <span class="n">count</span><span class="p">);</span> 
+        <span class="p">}</span>
+        <span class="n">cs_close</span><span class="p">(</span><span class="o">&amp;</span><span class="n">handle</span><span class="p">);</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>The <code>max_persist_count</code> tricks ensures we regularly quit the process (AFL will relaunch it automatically). This ensure that a memory leak won't fill up the RAM.</p>
+<p>Using <code>while (__AFL_LOOP(1000))</code> run the test 1000 times before exiting and restarting the whole process. This way we ensure that we can't fill up the RAM with a memory leak.</p>
 <p>Let's try it out!</p>
 <div class="codehilite"><pre>export AFL_PERSISTENT=1
 afl-clang-fast -static harness_persistent.c capstone/libcapstone.a -o harness_persistent
@@ -151,7 +139,7 @@ afl-fuzz -i inputs -o findings ./harness_persistent
 
 
 <p><img alt="persistent harness run" src="resources/fuzzing_capstone/harness_persistent_run.png" /></p>
-<p>Twice faster! Pretty good for a 5 lines change. The VM I'm running this is dual core, so we can run one AFL instance per core:</p>
+<p>Twice faster! Pretty good for a 3 lines change. The VM I'm running this is dual core, so we can run one AFL instance per core:</p>
 <div class="codehilite"><pre>afl-fuzz -i inputs -o findings -M master ./fuzz_capstone
 # In another tmux
 afl-fuzz -i inputs -o multi_sync -S slave1 ./fuzz_capstone
