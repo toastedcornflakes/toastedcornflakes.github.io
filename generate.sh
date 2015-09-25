@@ -1,9 +1,7 @@
 #!/bin/sh
 # This is the shittiest code I've written this month. I'm sorry.
 # Requirements: 
-# pip install markdown
-# pip install pygments 
-# pip install csscompressor
+# pip install csscompressor pygments  markdown
 
 begin=$(date +%s)
 articles=(articles/*.md)
@@ -22,7 +20,7 @@ done
 # Generate the static pages
 (sed 's/page_html_title/Toasted corn flakes website/g' header.html; python -m markdown index.md; cat footer.html) > index.html 
 (sed 's/page_html_title/About me/' header.html; python -m markdown about.md; cat footer.html) > about.html 
-# (sed 's/page_html_title/404/' header.html; python -m markdown 404.md; cat footer.html) > 404.html 
+ (sed 's/page_html_title//' header.html; python -m markdown 404.md; cat footer.html) > 404.html 
 
 # generate CSS from templates
 cp base_style.css style.css
