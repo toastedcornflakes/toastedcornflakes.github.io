@@ -114,7 +114,7 @@ Brainfuck is really small so we can easily translate each instructions to assemb
 The cells are represented using a contiguous memory zone, indexed by the `$rdx` register. `$rdx` will be our data pointer.
 
 ## Data pointer operations
-Since `$rdx` is the data pointer, this means that to encode the `>` instruction, we just need to increment rdx. In x64 assembly, this looks like `add $rdx, 1`. Similarly, we can encode the `<` as `sub $rdx, 1`.
+Since `$rdx` is the data pointer, this means that to encode the `>` instruction, we just need to increment rdx. In x64 assembly, this looks like `add rdx, 1`. Similarly, we can encode the `<` as `sub rdx, 1`.
 
 ## Cell content operations
 To increment the cell *content*, we need to dereference it using the brackets (nasm uses the [Intel syntax](https://en.wikipedia.org/wiki/X86_assembly_language#Syntax)). So `+` translated to assembly is `add byte [rdx], 1`.

@@ -120,7 +120,7 @@ We will print a 'e', the letter corresponding to 101.</p>
 <p>Brainfuck is really small so we can easily translate each instructions to assembly by hand. I've chosen to translate to <code>x86_64</code>, the Intel 64 bits architecture, since it's what powers my computer, and probably yours too.</p>
 <p>The cells are represented using a contiguous memory zone, indexed by the <code>$rdx</code> register. <code>$rdx</code> will be our data pointer.</p>
 <h3>Data pointer operations</h3>
-<p>Since <code>$rdx</code> is the data pointer, this means that to encode the <code>&gt;</code> instruction, we just need to increment rdx. In x64 assembly, this looks like <code>add $rdx, 1</code>. Similarly, we can encode the <code>&lt;</code> as <code>sub $rdx, 1</code>.</p>
+<p>Since <code>$rdx</code> is the data pointer, this means that to encode the <code>&gt;</code> instruction, we just need to increment rdx. In x64 assembly, this looks like <code>add rdx, 1</code>. Similarly, we can encode the <code>&lt;</code> as <code>sub rdx, 1</code>.</p>
 <h3>Cell content operations</h3>
 <p>To increment the cell <em>content</em>, we need to dereference it using the brackets (nasm uses the <a href="https://en.wikipedia.org/wiki/X86_assembly_language#Syntax">Intel syntax</a>). So <code>+</code> translated to assembly is <code>add byte [rdx], 1</code>.</p>
 <p>Likewise, <code>-</code> should be assembled to <code>sub byte [rdx], 1</code>.</p>
