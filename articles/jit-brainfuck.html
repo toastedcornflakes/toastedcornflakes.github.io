@@ -310,9 +310,12 @@ assembly for compare then jump to -0x10 (-0x10 can be written 0xffffffe7 in two-
 </pre></div>
 
 
-<p>The trivial bits like input management, stack implementation, and assembly copying aren't presented here but can be found on the <a href="https://github.com/toastedcornflakes/JIT_brainfuck/">github project</a>.</p>
+<p>The trivial bits like input management, stack implementation, and assembly look-up table aren't presented here but can be found on the <a href="https://github.com/toastedcornflakes/JIT_brainfuck/">github project</a>.</p>
 <h2>Further developments</h2>
-<p>The main problem of this implementation is that there is no code to check if we don't get out of bounds of the cells. The only efficient way to do this would be to add red zones around the cells using <code>mmap</code>.</p>
+<h3>Bugs</h3>
+<p>The main problem of this implementation is that there is no code to check if we don't get out of bounds of the cells. This means that a crash can easily happen for malformed input file. The only efficient way to check for this problem would be to add red zones (forbidden memory zones that aren't readable nor writable). This can be done using <code>mmap</code> and <code>mprotect</code>.</p>
+<p>This still wouldn't be perfect in case the malformed input simply steps through the red zones without touching them, but it would already help catching some buggy implementations.</p>
+<h3>Optimization</h3>
 <p>Given the structure of brainfuck we could easily improve the performance by collapsing the consecutive <code>+</code> operations.</p>
 <p>This means that instead of assembling <code>+++</code> to </p>
 <div class="codehilite"><pre><span class="nf">add</span> <span class="p">[</span><span class="nb">rdx</span><span class="p">],</span> <span class="mi">1</span>
@@ -321,7 +324,10 @@ assembly for compare then jump to -0x10 (-0x10 can be written 0xffffffe7 in two-
 </pre></div>
 
 
-<p>we could reduce the output code size by translating it to <code>add [rdx], 3</code>. Same goes for <code>-</code>, <code>&lt;</code> and <code>&gt;</code>.  </p><footer> 
+<p>we could reduce the output code size by translating it to <code>add [rdx], 3</code>. Same goes for <code>-</code>, <code>&lt;</code> and <code>&gt;</code>.  </p>
+<h2>Bonus: comparison against a naive interpreter</h2>
+<p>One of the biggest useful brainfuck program I could find is a <a href="https://github.com/toastedcornflakes/JIT_brainfuck/blob/master/scripts/mandelbrot.b">Mandelbrot fractal</a>. Running it on a naive C interpreter takes about 65 seconds on my machine. On the other hand, the (non-optimized!) JIT runs in only 4 seconds.</p>
+<p><img alt="output of Mandelbrot program" src="resources/JIT/mandelbrot.png" /></p><footer> 
 	Inaccuracies? Want to discuss something? <a href="mailto:toastedcornflakes@gmail.com">Get in touch</a>.
 </footer>
 </body>

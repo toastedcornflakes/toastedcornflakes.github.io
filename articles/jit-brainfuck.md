@@ -324,12 +324,16 @@ Here's the code doing the assembly:
 	debug("Running compiled code.");
 	func();
 
-The trivial bits like input management, stack implementation, and assembly copying aren't presented here but can be found on the [github project](https://github.com/toastedcornflakes/JIT_brainfuck/).
+The trivial bits like input management, stack implementation, and assembly look-up table aren't presented here but can be found on the [github project](https://github.com/toastedcornflakes/JIT_brainfuck/).
 
 
 # Further developments
-The main problem of this implementation is that there is no code to check if we don't get out of bounds of the cells. The only efficient way to do this would be to add red zones around the cells using `mmap`.
+## Bugs
+The main problem of this implementation is that there is no code to check if we don't get out of bounds of the cells. This means that a crash can easily happen for malformed input file. The only efficient way to check for this problem would be to add red zones (forbidden memory zones that aren't readable nor writable). This can be done using `mmap` and `mprotect`.
 
+This still wouldn't be perfect in case the malformed input simply steps through the red zones without touching them, but it would already help catching some buggy implementations.
+
+## Optimization
 Given the structure of brainfuck we could easily improve the performance by collapsing the consecutive `+` operations.
 
 This means that instead of assembling `+++` to 
@@ -340,4 +344,9 @@ This means that instead of assembling `+++` to
 	add [rdx], 1
 	
 we could reduce the output code size by translating it to `add [rdx], 3`. Same goes for `-`, `<` and `>`.  
+
+# Bonus: comparison against a naive interpreter
+One of the biggest useful brainfuck program I could find is a [Mandelbrot fractal](https://github.com/toastedcornflakes/JIT_brainfuck/blob/master/scripts/mandelbrot.b). Running it on a naive C interpreter takes about 65 seconds on my machine. On the other hand, the (non-optimized!) JIT runs in only 4 seconds.
+
+![output of Mandelbrot program](resources/JIT/mandelbrot.png)
 
