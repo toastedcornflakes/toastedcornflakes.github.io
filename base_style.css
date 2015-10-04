@@ -49,10 +49,18 @@ a {
 	color: #4183c4; 
 }
 
-footer {
+.footerright {
+	width: 50%;
 	margin: 0.3em auto 0.7em;
 	font-size: 0.8em;
 	float: right
+}
+
+.footerleft{
+	width: 50%;
+	margin: 0.3em auto 0.7em;
+	font-size: 0.8em;
+	float: left 
 }
 
 nav {
