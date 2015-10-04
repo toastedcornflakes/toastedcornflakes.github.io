@@ -1,5 +1,6 @@
 body {
-	color: #222;
+	color:#444;
+	background-color:#fbfbfb;
 	font-family: Helvetica, arial, sans-serif;
 	font-size: 1.1em;
 	max-width: 45em;
@@ -41,11 +42,11 @@ textarea {
 code,
 pre{
 	white-space: pre-wrap;
-	background-color: #f0f0f0; 
+	background-color: #e8e8e8; 
 } 
 
 a {
-	color: #4183C4; 
+	color: #4183c4; 
 }
 
 footer {
