@@ -18,7 +18,7 @@ for index in "${!articles[@]}"; do
 done
 
 # Generate the static pages
-(sed 's/page_html_title/Toasted corn flakes website/g' header.html; python -m markdown index.md; cat footer.html) > index.html 
+(sed 's/page_html_title/Toasted corn flakes’ website/g' header.html; python -m markdown index.md; cat footer.html) > index.html 
 (sed 's/page_html_title/About me/' header.html; python -m markdown about.md; cat footer.html) > about.html 
  (sed 's/page_html_title//' header.html; python -m markdown 404.md; cat footer.html) > 404.html 
 

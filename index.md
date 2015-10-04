@@ -1,1 +1,4 @@
-You may be looking for my [AFL article](articles/fuzzing_capstone_with_afl.html) or my [writeup](articles/cysca_portknock.html) of the cysca CTF portknock.
+## Some things I wrote:
+* [Fast, in-process](articles/fuzzing_capstone_with_afl.html) fuzzing using AFL
+* Writing a [JIT compiler](articles/jit-brainfuck.html) for brainfuck
+* [Write-up](articles/cysca_portknock.html) of a CTF portknock
