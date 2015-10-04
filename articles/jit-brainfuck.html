@@ -227,7 +227,15 @@ assembly for compare then jump to -0x10 (-0x10 can be written 0xffffffe7 in two-
 
 
 <p>Turns out that the last four bytes of the instructions are a 32 bit offset. This offset tells, relatively to the current instruction pointer, where the jump should go. A 32 bit offset doesn't cover the whole 64 bits address range, but this should be enough for our purposes.</p>
-<p>Here's the code doing the assembly:</p>
+<p>Here are the task that must be performed by the assembler:</p>
+<ol>
+<li>Create the executable code portion</li>
+<li>Create the cell space and setup the original <code>$rdx</code> pointer to the start of the space</li>
+<li>Run trough the input and convert each brainfuck instruction to its <code>x86_64</code> assembly (accounting for the jumps and jumps offset of the <code>[]</code> instructions)</li>
+<li>Add the end code to return to C when the brainfuck execution has terminated</li>
+<li>Run the code</li>
+</ol>
+<p>You can find the whole file on <a href="https://github.com/toastedcornflakes/JIT_brainfuck/blob/master/lib/compiler.c">github</a>.</p>
 <div class="codehilite"><pre><span class="c1">// add code that do the set up: </span>
 <span class="c1">// sets rdx to address of the cell array</span>
 <span class="n">code</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mh">0x48</span><span class="p">;</span>
@@ -299,7 +307,7 @@ assembly for compare then jump to -0x10 (-0x10 can be written 0xffffffe7 in two-
     <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="c1">// add `ret` to exit cleanly:</span>
+<span class="c1">// add the ret instruction to exit cleanly:</span>
 <span class="n">code</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mh">0xc3</span><span class="p">;</span>
 <span class="n">code</span><span class="o">++</span><span class="p">;</span>
 

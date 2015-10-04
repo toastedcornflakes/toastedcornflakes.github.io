@@ -241,7 +241,15 @@ In the assembly section above, we didn't account for different jump offset. If w
 
 Turns out that the last four bytes of the instructions are a 32 bit offset. This offset tells, relatively to the current instruction pointer, where the jump should go. A 32 bit offset doesn't cover the whole 64 bits address range, but this should be enough for our purposes.
 
-Here's the code doing the assembly:
+Here are the task that must be performed by the assembler:
+
+0. Create the executable code portion
+1. Create the cell space and setup the original `$rdx` pointer to the start of the space
+2. Run trough the input and convert each brainfuck instruction to its `x86_64` assembly (accounting for the jumps and jumps offset of the `[]` instructions)
+3. Add the end code to return to C when the brainfuck execution has terminated
+4. Run the code
+
+You can find the whole file on [github](https://github.com/toastedcornflakes/JIT_brainfuck/blob/master/lib/compiler.c).
 
 	:::c
 	// add code that do the set up: 
@@ -249,7 +257,7 @@ Here's the code doing the assembly:
 	code[0] = 0x48;
 	code[1] = 0xba;
 	code += 2;
-
+	
 	// write the actual address of the cells in the machine code
 	memcpy(code, &begin_cells, sizeof(unsigned char *));
 	code += sizeof(unsigned char*);
@@ -315,7 +323,7 @@ Here's the code doing the assembly:
 		}
 	}
 	
-	// add `ret` to exit cleanly:
+	// add the ret instruction to exit cleanly:
 	code[0] = 0xc3;
 	code++;
 	
@@ -323,6 +331,7 @@ Here's the code doing the assembly:
 	
 	debug("Running compiled code.");
 	func();
+
 
 The trivial bits like input management, stack implementation, and assembly look-up table aren't presented here but can be found on the [github project](https://github.com/toastedcornflakes/JIT_brainfuck/).
 
