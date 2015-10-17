@@ -14,7 +14,8 @@ for index in "${!articles[@]}"; do
 	# Spell check of the md file
 	aspell -c $i
 	# Please forgive me
-	(sed "s/page_html_title/$title/g" header.html; tail -n +2 $i | sed "s/^#/##/g" | python -m markdown -x codehilite ; cat footer_start.html; sed -e "s/post_tweet_title/$title/g" footer_addon_articles.html | sed -e "s/post_tweet_url/https%3A%2F%2Ftoastedcornflakes.github.io%2F/g"; cat footer_end.html) > $filename.html
+	name=$(echo "$filename" | sed -e "s/\//%2F/g")
+	(sed "s/page_html_title/$title/g" header.html; tail -n +2 $i | sed "s/^#/##/g" | python -m markdown -x codehilite ; cat footer_start.html; sed -e "s/post_tweet_title/$title/g" footer_addon_articles.html | sed -e "s/post_tweet_url/https%3A%2F%2Ftoastedcornflakes.github.io%2F$name%2Ehtml/g"; cat footer_end.html) > $filename.html
 done
 
 # Generate the static pages
