@@ -144,12 +144,12 @@ Let's try it out!
 Twice faster! Pretty good for a 3 lines change. The VM I'm running this is dual core, so we can run one AFL instance per core:
 
 	:::text
-	afl-fuzz -i inputs -o findings -M master ./fuzz_capstone
+	afl-fuzz -i inputs -o multi_sync -M master ./fuzz_capstone
 	# In another tmux
 	afl-fuzz -i inputs -o multi_sync -S slave1 ./fuzz_capstone
 	
 	# and in another pane we can get the summary stats
-	afl-whatsup
+	afl-whatsup -s multi_sync
 	
 	[...]
     Summary stats
