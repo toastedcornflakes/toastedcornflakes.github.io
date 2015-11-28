@@ -83,7 +83,7 @@ Before the first line, the memory is all zeroes and the data pointer is on the f
 	[ 9 | 7 | 10 | 3 | 1 | 0 ]
 	  ^                 
 
-`]` looks at the current cell value (9) and check if it's ≠ 0. Since it is, it jumps back to `]` and the loop runs again.
+`]` looks at the current cell value (9) and check if it's ≠ 0. Since it is, it jumps back to `[` and the loop runs again.
 
 The instruction `>+++++++` is run again: it moves the data pointer to the right and add 7 to the second cell
 
@@ -97,7 +97,7 @@ The instruction block will run 9 more times. The last time it's run, memory look
 	[ 0 | 70 | 100 | 30 | 10 | 0 ]
 	  ^
 
-When reaching `]`, it will check if the current cell is zero. Since the cell actually contains zero, it won't jump back to `]` and will instead go to the next line instruction, `>++.` . This will move to the second cell and add 2 to its value, making it 72. The dot will then print 72, the [ASCII](https://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters) value of 'H'.
+When reaching `]`, it will check if the current cell is zero. Since the cell actually contains zero, it won't jump back to `[` and will instead go to the next line instruction, `>++.` . This will move to the second cell and add 2 to its value, making it 72. The dot will then print 72, the [ASCII](https://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters) value of 'H'.
 
 To print the next letter we skip to the right cell, increment it once, then print it: `>+.`
 We will print a 'e', the letter corresponding to 101.
@@ -234,10 +234,10 @@ In the assembly section above, we didn't account for different jump offset. If w
 
 	:::text
 	00000000: 803a 000f 85e6 bead de
-	assembly for compare then jump to 0xdeadbeef
+	assembly for 'compare then jump to 0xdeadbeef'
 
 	00000000: 803a 000f 85e7 ffff ff
-	assembly for compare then jump to -0x10 (-0x10 can be written 0xffffffe7 in two-complements)
+	assembly for 'compare then jump to -0x10' (-0x10 can be written 0xffffffe7 in two-complements)
 
 Turns out that the last four bytes of the instructions are a 32 bit offset. This offset tells, relatively to the current instruction pointer, where the jump should go. A 32 bit offset doesn't cover the whole 64 bits address range, but this should be enough for our purposes.
 

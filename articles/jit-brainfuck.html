@@ -94,7 +94,7 @@ ga('send', 'pageview');
 </pre></div>
 
 
-<p><code>]</code> looks at the current cell value (9) and check if it's ≠ 0. Since it is, it jumps back to <code>]</code> and the loop runs again.</p>
+<p><code>]</code> looks at the current cell value (9) and check if it's ≠ 0. Since it is, it jumps back to <code>[</code> and the loop runs again.</p>
 <p>The instruction <code>&gt;+++++++</code> is run again: it moves the data pointer to the right and add 7 to the second cell</p>
 <div class="codehilite"><pre>[ 9 | 14 | 10 | 3 | 1 | 0 ]
        ^
@@ -107,7 +107,7 @@ ga('send', 'pageview');
 </pre></div>
 
 
-<p>When reaching <code>]</code>, it will check if the current cell is zero. Since the cell actually contains zero, it won't jump back to <code>]</code> and will instead go to the next line instruction, <code>&gt;++.</code> . This will move to the second cell and add 2 to its value, making it 72. The dot will then print 72, the <a href="https://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters">ASCII</a> value of 'H'.</p>
+<p>When reaching <code>]</code>, it will check if the current cell is zero. Since the cell actually contains zero, it won't jump back to <code>[</code> and will instead go to the next line instruction, <code>&gt;++.</code> . This will move to the second cell and add 2 to its value, making it 72. The dot will then print 72, the <a href="https://en.wikipedia.org/wiki/ASCII#ASCII_printable_characters">ASCII</a> value of 'H'.</p>
 <p>To print the next letter we skip to the right cell, increment it once, then print it: <code>&gt;+.</code>
 We will print a 'e', the letter corresponding to 101.</p>
 <div class="codehilite"><pre>[ 0 | 72 | 101 | 30 | 10 | 0 ] 
@@ -219,10 +219,10 @@ We will print a 'e', the letter corresponding to 101.</p>
 <h3>Loops</h3>
 <p>In the assembly section above, we didn't account for different jump offset. If we assemble the example using different offset, we can notice a pattern</p>
 <div class="codehilite"><pre>00000000: 803a 000f 85e6 bead de
-assembly for compare then jump to 0xdeadbeef
+assembly for &#39;compare then jump to 0xdeadbeef&#39;
 
 00000000: 803a 000f 85e7 ffff ff
-assembly for compare then jump to -0x10 (-0x10 can be written 0xffffffe7 in two-complements)
+assembly for &#39;compare then jump to -0x10&#39; (-0x10 can be written 0xffffffe7 in two-complements)
 </pre></div>
 
 
