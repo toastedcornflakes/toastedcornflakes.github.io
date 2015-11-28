@@ -89,7 +89,7 @@ After loading the executable in hopper, it's correctly identified as 32 bits ELF
 
 ![entry point disassembly](resources/cysca_portknock/entrypoint.png)
 
-It's a i386 executable, so the arguments are passed using the [cdecl][7] convention. This means that arguments are pushed on the stack in reverse order. The first argument of [`__libc_start_main`][8] is the address of `main`, thus `0x8049180`. In hopper, highlight it and press `N` to rename it to something more meaningful. Then jump to its disassembly by pressing enter.
+It's a i386 executable, so the arguments are passed using the [cdecl](https://en.wikipedia.org/wiki/X86_calling_conventions#cdecl) convention. This means that arguments are pushed on the stack in reverse order. The first argument of [`__libc_start_main`][8] is the address of `main`, thus `0x8049180`. In hopper, highlight it and press `N` to rename it to something more meaningful. Then jump to its disassembly by pressing enter.
 
 Our `main` calls two functions, `sub_80489f4` and `sub_8048f9a`.
 
