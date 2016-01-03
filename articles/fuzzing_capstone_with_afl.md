@@ -18,7 +18,7 @@ Internally, AFL checks if that input made the program reach new code path (eithe
 
 To achieve runtime monitoring, AFL will inject code at compile time. This is done by substituting `gcc` or `clang` with AFL's wrappers: `afl-gcc` and `afl-clang`. The wrapper will call the normal compiler, then add the instrumentation code and produce a binary that can be monitored by `afl-fuzz`.
 
-If you want to get a more thorough understanding of AFL's code coverage and how it generates new input, see [AFL's technical details.](http://lcamtuf.coredump.cx/afl/technical_details.txt).
+If you want to get a more thorough understanding of AFL's code coverage and how it generates new input, see [AFL's technical details](http://lcamtuf.coredump.cx/afl/technical_details.txt).
 
 
 # Writing a test harness
@@ -61,7 +61,7 @@ Let's write a test harness for the library we test, capstone. We'll keep it simp
 
 Let's run this with a random file as base. This is not ideal, but since the input is really small, the magic of the instrumentation should start to discover interesting values and branches pretty fast. 
 
-To compile this you'll need to install [AFL](https://lcamtuf.coredump.cx/afl/) (including `llvm_mode`), clang and llvm.
+To compile this you'll need to install [AFL](https://lcamtuf.coredump.cx/afl/) (including `llvm_mode`, needed for the next section), clang and llvm.
 
 	:::text
 	# compile an instrumented version of capstone
@@ -131,7 +131,7 @@ Here's the code for that:
 
 `__AFL_LOOP(1000)` is a macro that detects if the program is running under AFL. If it is, the loop will run 1000 times and 1000 different inputs will be fed to the library. After that, the process is torn down then restarted by AFL. This ensures we regularly replace the process to avoid memory leaks.
 
-If the program runs on his own (i.e. launched with `./harness_persistent`) the loop only run once. This way we can test any input on our own without looping a thousand times. This mean we can use gdb or automated tools to inspect the crashes found by the fuzzing.
+If the program runs on his own (i.e. launched with `./harness_persistent`) the loop only run once. This way we can test any input on our own without looping a thousand times. This mean we can use gdb or automated tools to inspect the crashes found by the fuzzer using the same binary.
 
 Let's try it out!
 
@@ -141,7 +141,7 @@ Let's try it out!
 
 ![persistent harness run](resources/fuzzing_capstone/harness_persistent_run.png)
 
-Twice faster! Pretty good for a 3 lines change. The VM I'm running this is dual core, so we can run one AFL instance per core:
+Twice faster! Pretty good for a 3 lines diff. The VM I'm running this is dual core, so we can run one AFL instance per core:
 
 	:::text
 	afl-fuzz -i inputs -o multi_sync -M master ./fuzz_capstone
