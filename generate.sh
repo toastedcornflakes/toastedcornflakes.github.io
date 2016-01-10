@@ -21,7 +21,7 @@ done
 # Generate the static pages
 (sed 's/page_html_title/Toasted corn flakes’ website/g' header.html; python -m markdown index.md; cat footer_start.html footer_end.html) > index.html 
 (sed 's/page_html_title/About me/' header.html; python -m markdown about.md; cat footer_start.html footer_end.html) > about.html 
- (sed 's/page_html_title//' header.html; python -m markdown 404.md; cat footer_start.html footer_end.html) > 404.html 
+(sed 's/page_html_title//' header.html; python -m markdown 404.md; cat footer_start.html footer_end.html) > 404.html 
 
 # generate CSS from templates
 cp base_style.css style.css
@@ -35,9 +35,7 @@ if python -c 'import csscompressor' 2>/dev/null; then
 fi
 
 # Compress the pngs in articles/resources/
-#for i in articles/resources/**.png ; do
-#	pngcrush -ow $i
-#done
+command -v optipng >/dev/null 2>&1 && find articles/resources/ -type f -name "*.png" -exec optipng -o7 {} \;	
 
 
 elapsed=$(($(date +%s)-begin))
