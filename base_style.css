@@ -53,7 +53,8 @@ a {
 	width: 50%;
 	margin: 0.3em auto 0.7em;
 	font-size: 0.8em;
-	float: right
+	float: right;
+	text-align: right
 }
 
 .footerleft{
