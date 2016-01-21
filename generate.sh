@@ -19,9 +19,9 @@ for index in "${!articles[@]}"; do
 done
 
 # Generate the static pages
-(sed 's/page_html_title/Toasted corn flakes’ website/g' header.html; python -m markdown index.md; cat footer_start.html footer_end.html) > index.html 
+(sed -e 's/<h1>page_html_title<\/h1>//g' -e 's/page_html_title/Signals everywhere/g' header.html; python -m markdown index.md; cat footer_start.html footer_end.html) > index.html 
 (sed 's/page_html_title/About me/' header.html; python -m markdown about.md; cat footer_start.html footer_end.html) > about.html 
-(sed 's/page_html_title//' header.html; python -m markdown 404.md; cat footer_start.html footer_end.html) > 404.html 
+(sed 's/page_html_title/404 not found/' header.html; python -m markdown 404.md; cat footer_start.html footer_end.html) > 404.html 
 
 # generate CSS from templates
 cp base_style.css style.css
@@ -34,8 +34,10 @@ if python -c 'import csscompressor' 2>/dev/null; then
 	python -m csscompressor style.css -o style.css
 fi
 
-# Compress the pngs in articles/resources/
-command -v optipng >/dev/null 2>&1 && find articles/resources/ -type f -name "*.png" -exec optipng -o7 {} \;	
+if [[ $1 = "--png" ]]; then
+	# Compress the pngs in articles/resources/
+	command -v optipng >/dev/null 2>&1 && find articles/resources/ -type f -name "*.png" -exec optipng -o7 {} \;	
+fi
 
 
 elapsed=$(($(date +%s)-begin))
