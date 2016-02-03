@@ -9,3 +9,6 @@ Happy reading. Don't forget to [reach out](mailto:toastedcornflakes@gmail.com) i
 
 ## Security related:
 * [Fast, in-process](articles/fuzzing_capstone_with_afl.html) fuzzing using AFL
+
+## Work in progress
+* A [demodulator](articles/weather_sattelite.html) and antenna for NOAA-18 weather satellite.

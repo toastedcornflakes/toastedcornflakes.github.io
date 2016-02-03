@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Signals everywhere</title>
+	<title>NOAA-18 demodulator</title>
 	<link rel="stylesheet" href="style.css">
 	<script>
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -16,24 +16,16 @@ ga('send', 'pageview');
 </head>
 <body>
 <nav>// <a href=/>Home</a> // <a href=/about.html>About me</a> // <a href="https://github.com/toastedcornflakes">Github</a> // <div class="subtitle">— Now with 30% more cyber!</div></nav>
-
-<h1>Writing</h1>
-<p>Here are some things I wrote recently. I tackle most subjects out of curiosity, with bonus point if it can be useful to someone. </p>
-<p>Happy reading. Don't forget to <a href="mailto:toastedcornflakes@gmail.com">reach out</a> if you find it interesting or want to discuss details!</p>
-<h2>Fun:</h2>
-<ul>
-<li>Writing a <a href="articles/jit-brainfuck.html">JIT compiler</a> for brainfuck</li>
-<li>How I <a href="articles/cysca_portknock.html">reversed</a> a portknock of a capture the flag challenge</li>
-</ul>
-<h2>Security related:</h2>
-<ul>
-<li><a href="articles/fuzzing_capstone_with_afl.html">Fast, in-process</a> fuzzing using AFL</li>
-</ul>
-<h2>Work in progress</h2>
-<ul>
-<li>A <a href="articles/weather_sattelite.html">demodulator</a> and antenna for NOAA-18 weather satellite.</li>
-</ul>
+<h1>NOAA-18 demodulator</h1>
+<p>NOAA-18 sends an FM signal at 137.9125 MHz containing a radar image encoded on a 256 levels AM signal.</p>
+<p>The goal of this project is to use an RTL-SDR and homemade antenna and extract the image with only my own software.</p>
+<p>Currently only a part of the demodulator is made, we can see the 909 points long line, with the synchronization information being the higher levels.</p>
+<p><img alt="AM signal demodulated" src="resources/weather/AM-levels.png" /></p>
+<p>The current code is on <a href="https://github.com/toastedcornflakes/APT">github</a>.</p>
 <footer>
+	<div class="footerleft">
+		<a href="https://twitter.com/intent/tweet?text=NOAA-18 demodulator&url=https%3A%2F%2Ftoastedcornflakes.github.io%2Farticles%2Fweather_sattelite%2Ehtml&via=toasted_flakes"> Tweet this</a>
+	</div>
 <div class="footerright">
 	Want to discuss something? ⇢ <a href="mailto:toastedcornflakes@gmail.com">Get in touch</a>.
 </div>
