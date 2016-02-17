@@ -1,4 +1,5 @@
 Static analysis of CySCA 2014 portknock using Hopper Disassembler
+no_latex
 
 [CySCA](https://www.cyberchallenge.com.au/) is a Capture The Flag with challenges ranging from crypto to reverse engineering, and from forensic to web pentest. You can get all the challenges in a [VM](https://www.vulnhub.com/entry/cysca-cysca2014-in-a-box,94/), or just this [binary](resources/cysca_portknock/488f866ad090d0843657f322e516168a-re02).
 

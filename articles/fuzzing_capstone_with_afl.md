@@ -1,4 +1,5 @@
 Fuzzing capstone using AFL persistent mode
+no_latex
 
 Fuzzing is an automated testing technique that involves automatically sending input to a program and monitoring its output. It's a way to test for reliability as well as identify potential security bugs. Compared to manual auditing, fuzzing will only uncover real bugs that are actually reachable. 
 

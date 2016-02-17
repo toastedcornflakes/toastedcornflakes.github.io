@@ -1,4 +1,5 @@
 Brainfuck: from hand translation to building a JIT compiler 
+no_latex
 
 Brainfuck is a minimalist language including only 8 instructions. Since it's really small, it's easy to write a compiler targeting it.
 

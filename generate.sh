@@ -10,12 +10,21 @@ for index in "${!articles[@]}"; do
 	filename=$i
 	filename="${filename%.*}"
 	title=$(head -n 1 $i)
+	if [ "$(sed -n 2p $i)" = "latex" ]
+	then
+		header="header_latex.html"
+		footer="footer_end_latex.html"
+	else
+		header="header.html"
+		footer="footer_end.html"
+	fi
+
 	echo "[$(($index+1))/${#articles[@]}] Processing $i"
 	# Spell check of the md file
 	aspell -c $i
 	# Please forgive me
 	name=$(echo "$filename" | sed -e "s/\//%2F/g")
-	(sed "s/page_html_title/$title/g" header.html; tail -n +2 $i | sed "s/^#/##/g" | python -m markdown -x codehilite ; cat footer_start.html; sed -e "s/post_tweet_title/$title/g" footer_addon_articles.html | sed -e "s/post_tweet_url/https%3A%2F%2Ftoastedcornflakes.github.io%2F$name%2Ehtml/g"; cat footer_end.html) > $filename.html
+	(sed "s/page_html_title/$title/g" $header; tail -n +3 $i | sed "s/^#/##/g" | python -m markdown -x codehilite ; cat footer_start.html; sed -e "s/post_tweet_title/$title/g" footer_addon_articles.html | sed -e "s/post_tweet_url/https%3A%2F%2Ftoastedcornflakes.github.io%2F$name%2Ehtml/g"; cat $footer) > $filename.html
 done
 
 # Generate the static pages
@@ -42,5 +51,6 @@ fi
 
 elapsed=$(($(date +%s)-begin))
 echo "Done generating website in $elapsed seconds.\nRunning web server, hit CTRL-C to quit"
+echo "Starting HTTP server on port 8000"
 python -m SimpleHTTPServer &> /dev/null
 

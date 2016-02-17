@@ -1,4 +1,5 @@
 NOAA-18 demodulator
+no_latex
 
 NOAA-18 sends an FM signal at 137.9125 MHz containing a radar image encoded on a 256 levels AM signal.
 
