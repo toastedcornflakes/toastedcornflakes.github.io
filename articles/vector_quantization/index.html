@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+	</head>
+	<body>
+		<div class="vq-container" width=100% height600>
+		<canvas width=800 height=600 id="maincanvas"></canvas>
+		</div>
+		Node count:
+		<input type="number" id="nodes_count"/>
+		Classes count:
+		<input type="number" id="classes_count"/>
+		<select id="algorithm_selector" name="Algorithm">
+			<option value="lloyds">Lloyd's algorithm</option>
+			<option value="gradient">Gradient descent</option>
+			<option value="stochastic_gradient" selected>Stochastic gradient descent</option>
+		</select>
+		<select id="distance_selector" name="Distance">
+			<option value="euclidean">Euclidean distance</option>
+			<option value="manhattan">Manhattan distance</option>
+		</select>
+		<button id="restart_button" name="button">Restart</button>
+		<script src=vq.js></script>
+	</body>
+</html>

@@ -12,3 +12,4 @@ Happy reading. Don't forget to [reach out](mailto:toastedcornflakes@gmail.com) i
 
 ## Work in progress
 * A [demodulator](articles/weather_sattelite.html) and antenna for NOAA-18 weather satellite.
+ * Vector quantization [animation](articles/vector_quantization/index.html) — Visual presentation of different algorithms to group vectors in sets
