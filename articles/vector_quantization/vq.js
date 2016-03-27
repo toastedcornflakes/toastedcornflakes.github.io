@@ -289,6 +289,8 @@
 		} else if (this.options.algorithm === ALGORITHMS.stochastic_gradient) {
 			this.steady_state_reached = false;
 			this.update_centroids_stochastic_gradient();
+		} else if (this.options.algorithm === ALGORITHMS.gradient) {
+			this.update_centroids_gradient();
 		} else {
 			throw "Not implemented";
 		}
@@ -325,8 +327,28 @@
 		return 1 / (iterations  + 1);
 	}
 
+	MainLoop.prototype.update_centroids_gradient = function update_centroids_gradient() {
+		var alpha = Math.sqrt(this.options.nodes / this.options.centroids) * quantization_rate(this.iterations);
+		
+		for(var i in this.centroids) {
+			var centroid = this.centroids[i];
+
+			var direction_x = 0;
+			var direction_y = 0;
+
+			for(var j in centroid.nodes) {
+				var node = centroid.nodes[j];
+				
+				direction_x += (node.x - centroid.x);
+				direction_y += (node.y - centroid.y);
+			}
+			centroid.x += alpha * direction_x / centroid.nodes.length;
+			centroid.y += alpha * direction_y / centroid.nodes.length;
+		}
+	};
+
 	// move one of the centroids in the direction of one of its node
-	MainLoop.prototype.update_centroids_stochastic_gradient = function update_centroids_gradient() {
+	MainLoop.prototype.update_centroids_stochastic_gradient = function update_centroids_stochastic_gradient() {
 		var alpha = 5 * Math.sqrt(this.options.nodes / this.options.centroids) * quantization_rate(this.iterations);
 		/*
 		   for (var i = 0; i < this.centroids.length; i++) {
