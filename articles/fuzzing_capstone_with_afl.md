@@ -132,7 +132,7 @@ Here's the code for that:
 
 `__AFL_LOOP(1000)` is a macro that detects if the program is running under AFL. If it is, the loop will run 1000 times and 1000 different inputs will be fed to the library. After that, the process is torn down then restarted by AFL. This ensures we regularly replace the process to avoid memory leaks.
 
-If the program runs on his own (i.e. launched with `./harness_persistent`) the loop only run once. This way we can test any input on our own without looping a thousand times. This mean we can use gdb or automated tools to inspect the crashes found by the fuzzer using the same binary.
+If the program runs on his own (i.e. launched with `./harness_persistent`) the loop runs only once. This way we can process testcases from the command line without looping a thousand time. This mean we can use gdb or automated tools to inspect the crashes found by the fuzzer using the same binary.
 
 Let's try it out!
 
