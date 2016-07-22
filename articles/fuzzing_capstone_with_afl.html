@@ -129,7 +129,7 @@ afl-fuzz -i inputs -o findings ./harness
 
 
 <p><code>__AFL_LOOP(1000)</code> is a macro that detects if the program is running under AFL. If it is, the loop will run 1000 times and 1000 different inputs will be fed to the library. After that, the process is torn down then restarted by AFL. This ensures we regularly replace the process to avoid memory leaks.</p>
-<p>If the program runs on his own (i.e. launched with <code>./harness_persistent</code>) the loop runs only once. This way we can process testcases from the command line without looping a thousand time. This mean we can use gdb or automated tools to inspect the crashes found by the fuzzer using the same binary.</p>
+<p>But if the program runs on his own (i.e. launched with <code>./harness_persistent</code> and not AFL) the loop runs only once. This way we can process testcases from the command line without looping a thousand time. This mean we can use gdb or automated tools to inspect the crashes found by the fuzzer using the same binary.</p>
 <p>Let's try it out!</p>
 <div class="codehilite"><pre>afl-clang-fast -static harness_persistent.c capstone/libcapstone.a -o harness_persistent
 afl-fuzz -i inputs -o findings ./harness_persistent
@@ -137,7 +137,7 @@ afl-fuzz -i inputs -o findings ./harness_persistent
 
 
 <p><img alt="persistent harness run" src="resources/fuzzing_capstone/harness_persistent_run.png" /></p>
-<p>Twice faster! Pretty good for a 3 lines diff. The VM I'm running this is dual core, so we can run one AFL instance per core:</p>
+<p>Twice faster! Pretty good for a 3 lines diff. The VM I use is dual core, so we can run one AFL instance per core:</p>
 <div class="codehilite"><pre>afl-fuzz -i inputs -o multi_sync -M master ./fuzz_capstone
 # In another tmux
 afl-fuzz -i inputs -o multi_sync -S slave1 ./fuzz_capstone
@@ -163,9 +163,9 @@ Summary stats
 <h2>Rundown</h2>
 <p>In this article we  </p>
 <ul>
-<li>wrote a basic test harness for AFL, using stdio</li>
+<li>wrote a basic test harness for AFL, using stdin for providing the inputs</li>
 <li>made a slightly more complicated harness that is persistent, and twice faster</li>
-<li>ran the fuzzer</li>
+<li>ran the fuzzer with both</li>
 </ul>
 <footer>
 	<div class="footerleft">

@@ -132,7 +132,7 @@ Here's the code for that:
 
 `__AFL_LOOP(1000)` is a macro that detects if the program is running under AFL. If it is, the loop will run 1000 times and 1000 different inputs will be fed to the library. After that, the process is torn down then restarted by AFL. This ensures we regularly replace the process to avoid memory leaks.
 
-If the program runs on his own (i.e. launched with `./harness_persistent`) the loop runs only once. This way we can process testcases from the command line without looping a thousand time. This mean we can use gdb or automated tools to inspect the crashes found by the fuzzer using the same binary.
+But if the program runs on his own (i.e. launched with `./harness_persistent` and not AFL) the loop runs only once. This way we can process testcases from the command line without looping a thousand time. This mean we can use gdb or automated tools to inspect the crashes found by the fuzzer using the same binary.
 
 Let's try it out!
 
@@ -142,7 +142,7 @@ Let's try it out!
 
 ![persistent harness run](resources/fuzzing_capstone/harness_persistent_run.png)
 
-Twice faster! Pretty good for a 3 lines diff. The VM I'm running this is dual core, so we can run one AFL instance per core:
+Twice faster! Pretty good for a 3 lines diff. The VM I use is dual core, so we can run one AFL instance per core:
 
 	:::text
 	afl-fuzz -i inputs -o multi_sync -M master ./fuzz_capstone
@@ -170,6 +170,6 @@ I let that run overnight and actually found [a harmless bug](https://github.com/
 # Rundown
 In this article we  
 
-* wrote a basic test harness for AFL, using stdio
+* wrote a basic test harness for AFL, using stdin for providing the inputs
 * made a slightly more complicated harness that is persistent, and twice faster
-* ran the fuzzer
+* ran the fuzzer with both
