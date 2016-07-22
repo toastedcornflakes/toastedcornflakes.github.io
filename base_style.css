@@ -65,7 +65,8 @@ a {
 }
 
 nav {
-	font-size:1.1em;
+	font-family: monospace;
+	font-size:1.3em;
 	font-weight:bold;
 	margin: 0.2em auto 1.4em; 
 }
@@ -75,6 +76,7 @@ nav a:link {
 }
 
 .subtitle {
+	font-family: Helvetica, arial, sans-serif;
 	font-size:0.8em !important;
 	font-weight:normal !important;
 	float:right;

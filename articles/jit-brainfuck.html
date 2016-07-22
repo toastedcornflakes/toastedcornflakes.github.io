@@ -335,7 +335,8 @@ assembly for &#39;compare then jump to -0x10&#39; (-0x10 can be written 0xffffff
 <p>we could reduce the output code size by translating it to <code>add [rdx], 3</code>. Same goes for <code>-</code>, <code>&lt;</code> and <code>&gt;</code>.  </p>
 <h2>Bonus: comparison against a naive interpreter</h2>
 <p>One of the biggest useful brainfuck program I could find is a <a href="https://github.com/toastedcornflakes/JIT_brainfuck/blob/master/scripts/mandelbrot.b">Mandelbrot fractal</a>. Running it on a naive C interpreter takes about 65 seconds on my machine. On the other hand, the (non-optimized!) JIT runs in only 4 seconds.</p>
-<p><img alt="output of Mandelbrot program" src="resources/JIT/mandelbrot.png" /></p><footer>
+<p><img alt="output of Mandelbrot program" src="resources/JIT/mandelbrot.png" /></p>
+<footer>
 	<div class="footerleft">
 		<a href="https://twitter.com/intent/tweet?text=Brainfuck: from hand translation to building a JIT compiler &url=https%3A%2F%2Ftoastedcornflakes.github.io%2Farticles%2Fjit-brainfuck%2Ehtml&via=toasted_flakes"> Tweet this</a>
 	</div>

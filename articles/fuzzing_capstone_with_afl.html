@@ -32,10 +32,10 @@ ga('send', 'pageview');
 <p>If you want to get a more thorough understanding of AFL's code coverage and how it generates new input, see <a href="http://lcamtuf.coredump.cx/afl/technical_details.txt">AFL's technical details</a>.</p>
 <h2>Writing a test harness</h2>
 <p>Let's write a test harness for the library we test, capstone. We'll keep it simple: input from stdin, and test only a small part of the library.</p>
-<div class="codehilite"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp"></span>
+<div class="codehilite"><pre><span class="cp">#include &lt;stdlib.h&gt;</span>
+<span class="cp">#include &lt;unistd.h&gt;</span>
 
-<span class="cp">#include</span> <span class="cpf">&quot;capstone/include/capstone.h&quot;</span><span class="cp"></span>
+<span class="cp">#include &quot;capstone/include/capstone.h&quot;</span>
 
 <span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
     <span class="c1">// The buffer we will pass to the library</span>
@@ -68,7 +68,7 @@ ga('send', 'pageview');
 
 <p>Let's run this with a random file as base. This is not ideal, but since the input is really small, the magic of the instrumentation should start to discover interesting values and branches pretty fast. </p>
 <p>To compile this you'll need to install <a href="https://lcamtuf.coredump.cx/afl/">AFL</a> (including <code>llvm_mode</code>, needed for the next section), clang and llvm.</p>
-<div class="codehilite"><pre><span></span># compile an instrumented version of capstone
+<div class="codehilite"><pre># compile an instrumented version of capstone
 git clone https://github.com/aquynh/capstone.git
 cd capstone
 CC=afl-clang-fast ./make.sh
@@ -91,13 +91,13 @@ afl-fuzz -i inputs -o findings ./harness
 <p>We are going to use AFL's in-process fuzzing. This time, we don't restart a new process for each new input. This will be <em>much</em> faster depending on the library.</p>
 <p>To do so, the test harness is nearly the same: we just need to add a loop.</p>
 <p>Here's the code for that:</p>
-<div class="codehilite"><pre><span></span><span class="cp">#include</span> <span class="cpf">&lt;stdlib.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;unistd.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;signal.h&gt;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;string.h&gt;</span><span class="cp"></span>
+<div class="codehilite"><pre><span class="cp">#include &lt;stdlib.h&gt;</span>
+<span class="cp">#include &lt;unistd.h&gt;</span>
+<span class="cp">#include &lt;signal.h&gt;</span>
+<span class="cp">#include &lt;string.h&gt;</span>
 
-<span class="cp">#include</span> <span class="cpf">&quot;capstone/include/capstone.h&quot;</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;inttypes.h&gt;</span><span class="cp"></span>
+<span class="cp">#include &quot;capstone/include/capstone.h&quot;</span>
+<span class="cp">#include &lt;inttypes.h&gt;</span>
 
 
 <span class="kt">int</span> <span class="nf">main</span><span class="p">(</span><span class="kt">int</span> <span class="n">argc</span><span class="p">,</span> <span class="kt">char</span><span class="o">**</span> <span class="n">argv</span><span class="p">)</span> <span class="p">{</span>
@@ -131,14 +131,14 @@ afl-fuzz -i inputs -o findings ./harness
 <p><code>__AFL_LOOP(1000)</code> is a macro that detects if the program is running under AFL. If it is, the loop will run 1000 times and 1000 different inputs will be fed to the library. After that, the process is torn down then restarted by AFL. This ensures we regularly replace the process to avoid memory leaks.</p>
 <p>If the program runs on his own (i.e. launched with <code>./harness_persistent</code>) the loop runs only once. This way we can process testcases from the command line without looping a thousand time. This mean we can use gdb or automated tools to inspect the crashes found by the fuzzer using the same binary.</p>
 <p>Let's try it out!</p>
-<div class="codehilite"><pre><span></span>afl-clang-fast -static harness_persistent.c capstone/libcapstone.a -o harness_persistent
+<div class="codehilite"><pre>afl-clang-fast -static harness_persistent.c capstone/libcapstone.a -o harness_persistent
 afl-fuzz -i inputs -o findings ./harness_persistent
 </pre></div>
 
 
 <p><img alt="persistent harness run" src="resources/fuzzing_capstone/harness_persistent_run.png" /></p>
 <p>Twice faster! Pretty good for a 3 lines diff. The VM I'm running this is dual core, so we can run one AFL instance per core:</p>
-<div class="codehilite"><pre><span></span>afl-fuzz -i inputs -o multi_sync -M master ./fuzz_capstone
+<div class="codehilite"><pre>afl-fuzz -i inputs -o multi_sync -M master ./fuzz_capstone
 # In another tmux
 afl-fuzz -i inputs -o multi_sync -S slave1 ./fuzz_capstone
 
@@ -166,7 +166,8 @@ Summary stats
 <li>wrote a basic test harness for AFL, using stdio</li>
 <li>made a slightly more complicated harness that is persistent, and twice faster</li>
 <li>ran the fuzzer</li>
-</ul><footer>
+</ul>
+<footer>
 	<div class="footerleft">
 		<a href="https://twitter.com/intent/tweet?text=Fuzzing capstone using AFL persistent mode&url=https%3A%2F%2Ftoastedcornflakes.github.io%2Farticles%2Ffuzzing_capstone_with_afl%2Ehtml&via=toasted_flakes"> Tweet this</a>
 	</div>
