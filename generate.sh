@@ -24,7 +24,17 @@ for index in "${!articles[@]}"; do
 	aspell -c $i
 	# Please forgive me
 	name=$(echo "$filename" | sed -e "s/\//%2F/g")
-	(sed "s/page_html_title/$title/g" $header; tail -n +3 $i | sed "s/^#/##/g" | python -m markdown -x codehilite ; cat footer_start.html; sed -e "s/post_tweet_title/$title/g" footer_addon_articles.html | sed -e "s/post_tweet_url/https%3A%2F%2Ftoastedcornflakes.github.io%2F$name%2Ehtml/g"; cat $footer) > $filename.html
+	(sed "s/page_html_title/$title/g" $header; 
+	tail -n +3 $i | 
+	# Reduce title number for the generated HTML
+	sed "s/^#/##/g" | 
+	# Highlight code
+	python -m markdown -x codehilite ;
+	cat footer_start.html;
+	# Put twitter link+title in the footer
+	sed "s/post_tweet_title/$title/g;s/post_tweet_url/https%3A%2F%2Ftoastedcornflakes.github.io%2F$name%2Ehtml/g" footer_addon_articles.html;
+	cat $footer
+	) > $filename.html
 done
 
 # Generate the static pages
