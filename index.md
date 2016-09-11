@@ -1,4 +1,3 @@
-# Writing
 Here are some things I wrote recently. I tackle most subjects out of curiosity, with bonus point if it can be useful to someone. 
 
 Happy reading. Don't forget to [reach out](mailto:toastedcornflakes@gmail.com) if you find it interesting or want to discuss details!
