@@ -36,7 +36,7 @@ for index in "${!articles[@]}"; do
 	# Reduce title number for the generated HTML
 	sed "s/^#/##/g" | 
 	# Highlight code
-	$PYTHON -m markdown -x codehilite ;
+	$PYTHON -m markdown -x codehilite -x footnotes;
 	cat footer_start.html;
 	# Put twitter link+title in the footer
 	sed "s/post_tweet_title/$title/g;s/post_tweet_url/https%3A%2F%2Ftoastedcornflakes.github.io%2F$name%2Ehtml/g" footer_addon_articles.html;
@@ -62,7 +62,7 @@ fi
 
 if [[ $1 = "--png" ]]; then
 	# Compress the pngs in articles/resources/
-	command -v optipng >/dev/null 2>&1 && find articles/resources/ -type f -name "*.png" -exec optipng -o7 {} \;	
+	command -v optipng >/dev/null 2>&1 && find articles/resources -type f -name "*.png" -exec optipng -o7 {} \;	
 fi
 
 
