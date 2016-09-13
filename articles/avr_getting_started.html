@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Getting started with AVR</title>
+	<title>Getting started with AVR, part I</title>
 	<link rel="stylesheet" href="style.css">
 	<script>
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
@@ -16,8 +16,8 @@ ga('send', 'pageview');
 </head>
 <body>
 <nav>// <a href=/>Home</a> // <a href=/about.html>About me</a> // <a href="https://github.com/toastedcornflakes">Github</a> // <div class="subtitle">— Now with 30% more cyber!</div></nav>
-<h1>Getting started with AVR</h1>
-<p>In this post, I will lay out the basics on how to blink a LED on barebone Atmega328P. This means no arduino bootloader, some datasheet reading, and a more solid understanding of the basics when done. As usual, the code, along with a practical Makefile, is available on <a href="https://github.com/toastedcornflakes/AVR">github</a>.</p>
+<h1>Getting started with AVR, part I</h1>
+<p>In this post, I will lay out the basics on how to blink a LED on barebone Atmega328P. This means no arduino bootloader, some datasheet reading, and a more solid understanding of the basics when done. As usual, the code, along with a practical Makefile, is available on <a href="https://github.com/toastedcornflakes/AVR/tree/blink">github</a>. The latest version is on the <a href="https://github.com/toastedcornflakes/avr">master</a> branch, and is discussed in the next part.</p>
 <h2>Hardware</h2>
 <p>Here are the basics you will need to follow along. Not everything is a hard requirement, and with a bit of creativity you can avoid some of those parts, but this kit is a safe bet to get you going with the most basic features of an AVR microcontroller:</p>
 <ul>
@@ -126,7 +126,7 @@ avr-objcopy -O ihex -R .eeprom main.elf main.hex
 </div>
 <footer>
 	<div class="footerleft">
-		<a href="https://twitter.com/intent/tweet?text=Getting started with AVR&url=https%3A%2F%2Ftoastedcornflakes.github.io%2Farticles%2Favr_getting_started%2Ehtml&via=toasted_flakes"> Tweet this</a>
+		<a href="https://twitter.com/intent/tweet?text=Getting started with AVR, part I&url=https%3A%2F%2Ftoastedcornflakes.github.io%2Farticles%2Favr_getting_started%2Ehtml&via=toasted_flakes"> Tweet this</a>
 	</div>
 <div class="footerright">
 	Want to discuss something? ⇢ <a href="mailto:toastedcornflakes@gmail.com">Get in touch</a>.

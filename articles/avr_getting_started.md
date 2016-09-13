@@ -1,7 +1,7 @@
-Getting started with AVR
+Getting started with AVR, part I
 no_latex
 
-In this post, I will lay out the basics on how to blink a LED on barebone Atmega328P. This means no arduino bootloader, some datasheet reading, and a more solid understanding of the basics when done. As usual, the code, along with a practical Makefile, is available on [github](https://github.com/toastedcornflakes/AVR).
+In this post, I will lay out the basics on how to blink a LED on barebone Atmega328P. This means no arduino bootloader, some datasheet reading, and a more solid understanding of the basics when done. As usual, the code, along with a practical Makefile, is available on [github](https://github.com/toastedcornflakes/AVR/tree/blink). The latest version is on the [master](https://github.com/toastedcornflakes/avr) branch, and is discussed in the next part.
 
 
 # Hardware
