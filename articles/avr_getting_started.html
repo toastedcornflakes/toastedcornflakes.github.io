@@ -17,11 +17,11 @@ ga('send', 'pageview');
 <body>
 <nav>// <a href=/>Home</a> // <a href=/about.html>About me</a> // <a href="https://github.com/toastedcornflakes">Github</a> // <div class="subtitle">— Now with 30% more cyber!</div></nav>
 <h1>Getting started with AVR</h1>
-<p>In this post, I'll lay out the basics on how to blink a LED on barebone Atmega328P. This means no arduino bootloader, some datasheet reading, and a more solid understanding of the basics at the end of the day. As usual, the code (along with a practical Makefile) is available on <a href="https://github.com/toastedcornflakes/AVR">github</a>.</p>
+<p>In this post, I will lay out the basics on how to blink a LED on barebone Atmega328P. This means no arduino bootloader, some datasheet reading, and a more solid understanding of the basics when done. As usual, the code, along with a practical Makefile, is available on <a href="https://github.com/toastedcornflakes/AVR">github</a>.</p>
 <h2>Hardware</h2>
-<p>Here are the basics you'll need to follow along. Not everything is a hard requirement, and with a bit of creativity you can avoid some of those parts, but this kit is a safe bet to get you going with the most basic features of an AVR microcontroller:</p>
+<p>Here are the basics you will need to follow along. Not everything is a hard requirement, and with a bit of creativity you can avoid some of those parts, but this kit is a safe bet to get you going with the most basic features of an AVR microcontroller:</p>
 <ul>
-<li>Any AVR microcontroller. Here I'll use an <a href="http://www.atmel.com/devices/atmega328p.aspx">Atmega328P</a>. Take some time now to read through the headers of the table of contents, to get an idea of what is included.</li>
+<li>Any AVR microcontroller. Here I will use an <a href="http://www.atmel.com/devices/atmega328p.aspx">Atmega328P</a>. Take some time now to read through the table of contents, to get an idea of what is included.</li>
 <li>External oscillator (a 16 MHz crystal and two 22pF capacitors)</li>
 <li>Push button with 10k pull-up</li>
 <li>LED and any resistor around 1k</li>
@@ -31,13 +31,14 @@ ga('send', 'pageview');
 <h2>Connections</h2>
 <p>Now that all pieces are around, let's wire it up.</p>
 <p>Here's the pinout of the Atmega328P, straight from the datasheet:</p>
-<p><img alt="Pinout Atmega328P" src="/articles/resources/avr/atmega328p_dip_pinout.png" /></p>
+<p><img alt="Pinout of the Atmega328P" src="/articles/resources/avr/atmega328p_dip_pinout.png" title="Pinout of the Atmega328P" /></p>
 <h3>External clock source</h3>
 <p>The clock source is external. The connections are pretty straightforward, see "Crystal Oscillator Connections" in the datasheet.</p>
 <h3>Reset</h3>
 <p>Connect the reset pin to VCC via the 10k resistor, and to the ground via the push button. Remember to leave some space for the RESET pin of the programmer.</p>
 <h3>Programmer</h3>
-<p>The 6 pins of the programmer cable (VCC, ground, MISO, MOSI, SCK and RESET) go to the corresponding pins on the microcontroller. </p>
+<p>The 6 pins of the ISP (In System Programming) cable (VCC, ground, MISO, MOSI, SCK and RESET) go to the corresponding pins<sup id="fnref:1"><a class="footnote-ref" href="#fn:1" rel="footnote">1</a></sup> on the microcontroller. 
+<img alt="Pinout of the ISP cable: 1 MISO, 2 VCC, 3 SCK, 4 MOSI, 5 RESET, 6 GND (from left to right, going down)" src="/articles/resources/avr/isp_pinout.jpg" /></p>
 <h3>Power</h3>
 <p>Connect the VCC and AVCC pins of the microcontroller to the power (at this point it can simply be provided by the programmer), and the two ground pins to the programmer's ground. If you have a ~1uF capacitor laying around, put it with a small resistor between VCC and ground, to stabilize the power.</p>
 <h3>LED</h3>
@@ -46,7 +47,7 @@ ga('send', 'pageview');
 <p>With this basic wiring in place, you're now ready to program your first LED-blinker. </p>
 <p>If you're unsure about some connections, try to find it in the datasheet. Understanding its structure and being able to look stuff up on your own will save you a tremendous amount of time.</p>
 <h2>Programming</h2>
-<p><code>avrdude</code> needs to know what programmer and microcontroller you have, and what to upload. The command to upload <code>-v</code>erbosely myfile.hex to an Atmega328P, with an USBTinyISP programmer, looks like this<sup id="fnref:1"><a class="footnote-ref" href="#fn:1" rel="footnote">1</a></sup>:</p>
+<p><code>avrdude</code> needs to know what programmer and microcontroller you have, and what to upload. The command to upload (in verbose mode) myfile.hex to an Atmega328P, with an USBTinyISP programmer, looks like this<sup id="fnref:2"><a class="footnote-ref" href="#fn:2" rel="footnote">2</a></sup>:</p>
 <div class="codehilite"><pre><span></span>avrdude -v -p m328p -c usbtiny -U flash:w:myfile.hex
 </pre></div>
 
@@ -54,7 +55,7 @@ ga('send', 'pageview');
 <p>To get a list of supported parts, type <code>avrdude -p '?'</code>, and <code>avrdude -c '?'</code> for a list of programmers.</p>
 <h2>Basic software</h2>
 <p>We're able to upload programming file! Let's write some lines that blink a LED.</p>
-<p>Doing IO on digital pins is straightforward: writing to a global value defined in <code>&lt;avr/io.h&gt;</code> will pass it down to the IO registers, effectively setting the PIN high or low. But first, you'll need to set its mode to input or output.</p>
+<p>Doing IO on digital pins is straightforward: writing to a global value defined in <code>&lt;avr/io.h&gt;</code> will pass it down to the IO registers, effectively setting the pin high or low. You will also need to set its mode to input or output.</p>
 <div class="codehilite"><pre><span></span><span class="cp">#define F_CPU 16000000UL        </span><span class="c1">// Speed of the microprocessor, in hertz (16 MHz)</span>
 <span class="cp">#include</span> <span class="cpf">&lt;avr/io.h&gt;             // provides PORT* and DDR* registers</span><span class="cp"></span>
 <span class="cp">#include</span> <span class="cpf">&lt;util/delay.h&gt;         // provides _delay_ms(), and needs F_CPU</span><span class="cp"></span>
@@ -96,7 +97,7 @@ avr-objcopy -O ihex -R .eeprom main.elf main.hex
 </pre></div>
 
 
-<p>You'll see the LED blink, but only once every ~4s, whereas we expected it to blink twice a second!</p>
+<p>You will see the LED blink, but only once every ~4s, whereas we expected it to blink twice a second!</p>
 <p>This is because the default, out-of-factory state of your microcontroller is to use an internal 1MHz clock source, instead of the external 16Mhz oscillator. The F_CPU value used in <code>utils/delays.h</code> to compute the time per instruction is then wrong. Let's fix that!</p>
 <h2>Fuses</h2>
 <p>By looking under the "Clock sources" section of the datasheet, we guess that the "Full Swing Crystal Oscillator" is what we want. A paragraph later and we learn that we should set the fuses <code>CKSEL[3:1]</code> to 011. We must also set <code>CKDIV8</code> to 1 to disable the clock division.</p>
@@ -105,7 +106,7 @@ avr-objcopy -O ihex -R .eeprom main.elf main.hex
 </pre></div>
 
 
-<p>This will create a 1 byte file containing the lfuse value, in my case <code>0x62</code>, or <code>0b01100010</code>. To correctly set <code>CKSEL</code> and <code>CKDIV8</code>, we will switch the first and third bit (starting from the right!), and get <code>0b11100110</code> (which is <code>0xe6</code> in hex). We can now write it to the microcontroller:</p>
+<p>This will create a 1 byte file containing the current lfuse value, in my case <code>0x62</code>, or <code>0b01100010</code>. To correctly set <code>CKSEL</code> and <code>CKDIV8</code>, we will switch the first and sixth bit (starting from the left!), and get <code>0b11100110</code> (which is <code>0xe6</code> in hex). We can now write it to the microcontroller:</p>
 <div class="codehilite"><pre><span></span>avrdude -v -p m328p -c usbtiny -U lfuse:w:e6:m
 </pre></div>
 
@@ -116,7 +117,10 @@ avr-objcopy -O ihex -R .eeprom main.elf main.hex
 <hr />
 <ol>
 <li id="fn:1">
-<p>If avrdude dies with 'Warning: cannot open USB device: Permission denied', you can either launch it as root (and suffer the consequences) or <a href="https://andreasrohner.at/posts/Electronics/How-to-fix-device-permissions-for-the-USBasp-programmer/">write a udev rule</a> matching your programmer vendor and device id.&#160;<a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+<p>The pinout is an upper view, assuming that the red wire is on the side of the MISO and VCC pin.&#160;<a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
+<li id="fn:2">
+<p>If avrdude dies with 'Warning: cannot open USB device: Permission denied', you can either launch it as root (and suffer the consequences) or <a href="https://andreasrohner.at/posts/Electronics/How-to-fix-device-permissions-for-the-USBasp-programmer/">write a udev rule</a> matching your programmer vendor and device id.&#160;<a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text">&#8617;</a></p>
 </li>
 </ol>
 </div>
