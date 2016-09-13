@@ -1,7 +1,7 @@
 Getting started with AVR
 no_latex
 
-In this post, I'll lay out the basics on how to blink a LED on barebone Atmega328P. This means no arduino bootloader, some datasheet reading, and a more solid understanding of the basics at the end of the day.
+In this post, I'll lay out the basics on how to blink a LED on barebone Atmega328P. This means no arduino bootloader, some datasheet reading, and a more solid understanding of the basics at the end of the day. As usual, the code (along with a practical Makefile) is available on [github](https://github.com/toastedcornflakes/AVR).
 
 
 # Hardware
@@ -118,6 +118,5 @@ After resetting the board, we see that the LED now blinks twice each second!
 
 This concludes the first part of this series. Next up: debug printing with an UART.
 
-This code with a practical Makefile is available on [github](https://github.com/toastedcornflakes/AVR).
 
 [^1]: If avrdude dies with 'Warning: cannot open USB device: Permission denied', you can either launch it as root (and suffer the consequences) or [write a udev rule](https://andreasrohner.at/posts/Electronics/How-to-fix-device-permissions-for-the-USBasp-programmer/) matching your programmer vendor and device id.

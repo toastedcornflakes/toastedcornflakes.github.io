@@ -17,7 +17,7 @@ ga('send', 'pageview');
 <body>
 <nav>// <a href=/>Home</a> // <a href=/about.html>About me</a> // <a href="https://github.com/toastedcornflakes">Github</a> // <div class="subtitle">— Now with 30% more cyber!</div></nav>
 <h1>Getting started with AVR</h1>
-<p>In this post, I'll lay out the basics on how to blink a LED on barebone Atmega328P. This means no arduino bootloader, some datasheet reading, and a more solid understanding of the basics at the end of the day.</p>
+<p>In this post, I'll lay out the basics on how to blink a LED on barebone Atmega328P. This means no arduino bootloader, some datasheet reading, and a more solid understanding of the basics at the end of the day. As usual, the code (along with a practical Makefile) is available on <a href="https://github.com/toastedcornflakes/AVR">github</a>.</p>
 <h2>Hardware</h2>
 <p>Here are the basics you'll need to follow along. Not everything is a hard requirement, and with a bit of creativity you can avoid some of those parts, but this kit is a safe bet to get you going with the most basic features of an AVR microcontroller:</p>
 <ul>
@@ -112,7 +112,6 @@ avr-objcopy -O ihex -R .eeprom main.elf main.hex
 
 <p>After resetting the board, we see that the LED now blinks twice each second!</p>
 <p>This concludes the first part of this series. Next up: debug printing with an UART.</p>
-<p>This code with a practical Makefile is available on <a href="https://github.com/toastedcornflakes/AVR">github</a>.</p>
 <div class="footnote">
 <hr />
 <ol>
