@@ -10,6 +10,6 @@ Happy reading. [Contact me](mailto:toastedcornflakes@gmail.com) if you find anyt
 ## Security:
 * [Fast, in-process](/articles/fuzzing_capstone_with_afl.html) fuzzing using AFL-fuzz.
 
-## Work in progress
+## Work in progress:
 * A [demodulator](/articles/weather_sattelite.html) and antenna for NOAA-18 weather satellite.
  * Vector quantization [animation](/articles/vector_quantization/index.html) — Visual presentation of different algorithms to group vectors in sets.
