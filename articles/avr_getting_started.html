@@ -32,12 +32,12 @@ ga('send', 'pageview');
 <p>Now that all pieces are around, let's wire it up.</p>
 <p>Here's the pinout of the Atmega328P, straight from the datasheet:</p>
 <p><img alt="Pinout of the Atmega328P" src="/articles/resources/avr/atmega328p_dip_pinout.png" title="Pinout of the Atmega328P" /></p>
-<h3>External clock source</h3>
-<p>The clock source is external. The connections are pretty straightforward, see "Crystal Oscillator Connections" in the datasheet.</p>
+<h3>External crystal oscillator<sup id="fnref:0"><a class="footnote-ref" href="#fn:0" rel="footnote">1</a></sup></h3>
+<p>The clock is generated using an external crystal oscillator. The connections are pretty straightforward, see "Crystal Oscillator Connections" in the datasheet.</p>
 <h3>Reset</h3>
 <p>Connect the reset pin to VCC via the 10k resistor, and to the ground via the push button. Remember to leave some space for the RESET pin of the programmer.</p>
 <h3>Programmer</h3>
-<p>The 6 pins of the ISP (In System Programming) cable (VCC, ground, MISO, MOSI, SCK and RESET) go to the corresponding pins<sup id="fnref:1"><a class="footnote-ref" href="#fn:1" rel="footnote">1</a></sup> on the microcontroller. 
+<p>The 6 pins of the ISP (In System Programming) cable (VCC, ground, MISO, MOSI, SCK and RESET) go to the corresponding pins<sup id="fnref:1"><a class="footnote-ref" href="#fn:1" rel="footnote">2</a></sup> on the microcontroller. 
 <img alt="Pinout of the ISP cable: 1 MISO, 2 VCC, 3 SCK, 4 MOSI, 5 RESET, 6 GND (from left to right, going down)" src="/articles/resources/avr/isp_pinout.jpg" /></p>
 <h3>Power</h3>
 <p>Connect the VCC and AVCC pins of the microcontroller to the power (at this point it can simply be provided by the programmer), and the two ground pins to the programmer's ground. If you have a ~1uF capacitor laying around, put it with a small resistor between VCC and ground, to stabilize the power.</p>
@@ -47,7 +47,7 @@ ga('send', 'pageview');
 <p>With this basic wiring in place, you're now ready to program your first LED-blinker. </p>
 <p>If you're unsure about some connections, try to find it in the datasheet. Understanding its structure and being able to look stuff up on your own will save you a tremendous amount of time.</p>
 <h2>Programming</h2>
-<p><code>avrdude</code> needs to know what programmer and microcontroller you have, and what to upload. The command to upload (in verbose mode) myfile.hex to an Atmega328P, with an USBTinyISP programmer, looks like this<sup id="fnref:2"><a class="footnote-ref" href="#fn:2" rel="footnote">2</a></sup>:</p>
+<p><code>avrdude</code> needs to know what programmer and microcontroller you have, and what to upload. The command to upload (in verbose mode) myfile.hex to an Atmega328P, with an USBTinyISP programmer, looks like this<sup id="fnref:2"><a class="footnote-ref" href="#fn:2" rel="footnote">3</a></sup>:</p>
 <div class="codehilite"><pre><span></span>avrdude -v -p m328p -c usbtiny -U flash:w:myfile.hex
 </pre></div>
 
@@ -116,11 +116,14 @@ avr-objcopy -O ihex -R .eeprom main.elf main.hex
 <div class="footnote">
 <hr />
 <ol>
+<li id="fn:0">
+<p>The crystal is external, but the <a href="https://www.reddit.com/r/arduino/comments/52jgxe/avr_programming_on_a_barebone_microcontroller/d7l03d7">clock source is still internal</a>.&#160;<a class="footnote-backref" href="#fnref:0" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+</li>
 <li id="fn:1">
-<p>The pinout is an upper view, assuming that the red wire is on the side of the MISO and VCC pin.&#160;<a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 1 in the text">&#8617;</a></p>
+<p>The pinout is an upper view, assuming that the red wire is on the side of the MISO and VCC pin.&#160;<a class="footnote-backref" href="#fnref:1" rev="footnote" title="Jump back to footnote 2 in the text">&#8617;</a></p>
 </li>
 <li id="fn:2">
-<p>If avrdude dies with 'Warning: cannot open USB device: Permission denied', you can either launch it as root (and suffer the consequences) or <a href="https://andreasrohner.at/posts/Electronics/How-to-fix-device-permissions-for-the-USBasp-programmer/">write a udev rule</a> matching your programmer vendor and device id.&#160;<a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 2 in the text">&#8617;</a></p>
+<p>If avrdude dies with 'Warning: cannot open USB device: Permission denied', you can either launch it as root (and suffer the consequences) or <a href="https://andreasrohner.at/posts/Electronics/How-to-fix-device-permissions-for-the-USBasp-programmer/">write a udev rule</a> matching your programmer vendor and device id.&#160;<a class="footnote-backref" href="#fnref:2" rev="footnote" title="Jump back to footnote 3 in the text">&#8617;</a></p>
 </li>
 </ol>
 </div>

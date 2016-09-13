@@ -21,8 +21,8 @@ Here's the pinout of the Atmega328P, straight from the datasheet:
 
 ![Pinout of the Atmega328P](/articles/resources/avr/atmega328p_dip_pinout.png "Pinout of the Atmega328P")
 
-## External clock source
-The clock source is external. The connections are pretty straightforward, see "Crystal Oscillator Connections" in the datasheet.
+## External crystal oscillator[^0]
+The clock is generated using an external crystal oscillator. The connections are pretty straightforward, see "Crystal Oscillator Connections" in the datasheet.
 
 ## Reset
 Connect the reset pin to VCC via the 10k resistor, and to the ground via the push button. Remember to leave some space for the RESET pin of the programmer.
@@ -121,5 +121,6 @@ After resetting the board, we see that the LED now blinks twice each second!
 This concludes the first part of this series. Next up: debug printing with an UART.
 
 
+[^0]: The crystal is external, but the [clock source is still internal](https://www.reddit.com/r/arduino/comments/52jgxe/avr_programming_on_a_barebone_microcontroller/d7l03d7).
 [^1]: The pinout is an upper view, assuming that the red wire is on the side of the MISO and VCC pin.
 [^2]: If avrdude dies with 'Warning: cannot open USB device: Permission denied', you can either launch it as root (and suffer the consequences) or [write a udev rule](https://andreasrohner.at/posts/Electronics/How-to-fix-device-permissions-for-the-USBasp-programmer/) matching your programmer vendor and device id.
