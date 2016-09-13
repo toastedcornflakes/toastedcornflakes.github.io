@@ -83,6 +83,10 @@ nav a:link {
 	display:none;
 }
 
+.footnote-ref {
+	text-decoration: none;
+}
+
 img {
 	display: block;
 	margin: 1em auto 1em;
