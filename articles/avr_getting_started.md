@@ -102,7 +102,7 @@ Upload (substitute your programmer and microcontroller too)
 
 You will see the LED blink, but only once every ~4s, whereas we expected it to blink twice a second!
 
-This is because the default, out-of-factory state of your microcontroller is to use an internal 1MHz clock source, instead of the external 16Mhz oscillator. The F_CPU value used in `utils/delays.h` to compute the time per instruction is then wrong. Let's fix that!
+This is because the default, out-of-factory state of your microcontroller is to use an internal 1 MHz clock source, instead of the external 16 MHz oscillator. The F_CPU value used in `utils/delays.h` to compute the time per instruction is then wrong. Let's fix that!
 
 # Fuses
 By looking under the "Clock sources" section of the datasheet, we guess that the "Full Swing Crystal Oscillator" is what we want. A paragraph later and we learn that we should set the fuses `CKSEL[3:1]` to 011. We must also set `CKDIV8` to 1 to disable the clock division.
