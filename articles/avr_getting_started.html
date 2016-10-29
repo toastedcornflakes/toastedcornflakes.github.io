@@ -48,7 +48,7 @@ ga('send', 'pageview');
 <p>If you're unsure about some connections, try to find it in the datasheet. Understanding its structure and being able to look stuff up on your own will save you a tremendous amount of time.</p>
 <h2>Programming</h2>
 <p><code>avrdude</code> needs to know what programmer and microcontroller you have, and what to upload. The command to upload (in verbose mode) myfile.hex to an Atmega328P, with an USBTinyISP programmer, looks like this<sup id="fnref:2"><a class="footnote-ref" href="#fn:2" rel="footnote">3</a></sup>:</p>
-<div class="codehilite"><pre><span></span>avrdude -v -p m328p -c usbtiny -U flash:w:myfile.hex
+<div class="codehilite"><pre>avrdude -v -p m328p -c usbtiny -U flash:w:myfile.hex
 </pre></div>
 
 
@@ -56,9 +56,9 @@ ga('send', 'pageview');
 <h2>Basic software</h2>
 <p>We're able to upload programming file! Let's write some lines that blink a LED.</p>
 <p>Doing IO on digital pins is straightforward: writing to a global value defined in <code>&lt;avr/io.h&gt;</code> will pass it down to the IO registers, effectively setting the pin high or low. You will also need to set its mode to input or output.</p>
-<div class="codehilite"><pre><span></span><span class="cp">#define F_CPU 16000000UL        </span><span class="c1">// Speed of the microprocessor, in hertz (16 MHz)</span>
-<span class="cp">#include</span> <span class="cpf">&lt;avr/io.h&gt;             // provides PORT* and DDR* registers</span><span class="cp"></span>
-<span class="cp">#include</span> <span class="cpf">&lt;util/delay.h&gt;         // provides _delay_ms(), and needs F_CPU</span><span class="cp"></span>
+<div class="codehilite"><pre><span class="cp">#define F_CPU 16000000UL        </span><span class="c1">// Speed of the microprocessor, in hertz (16 MHz)</span>
+<span class="cp">#include &lt;avr/io.h&gt;             </span><span class="c1">// provides PORT* and DDR* registers</span>
+<span class="cp">#include &lt;util/delay.h&gt;         </span><span class="c1">// provides _delay_ms(), and needs F_CPU</span>
 
 <span class="kt">int</span> <span class="nf">main</span><span class="p">()</span>
 <span class="p">{</span>
@@ -70,7 +70,8 @@ ga('send', 'pageview');
         <span class="c1">// set PC3 on</span>
         <span class="n">PORTC</span> <span class="o">|=</span> <span class="n">_BV</span><span class="p">(</span><span class="n">PC3</span><span class="p">);</span>
 
-        <span class="c1">// caveat: the allowed value is around 260ms</span>
+        <span class="c1">// caveat: the precision falls down after 260 ms</span>
+        <span class="c1">// see the avr-libc documentation</span>
         <span class="n">_delay_ms</span><span class="p">(</span><span class="mi">250</span><span class="p">);</span>
 
         <span class="c1">// set PC3 off</span>
@@ -86,14 +87,14 @@ ga('send', 'pageview');
 
 <p>If you're confused with the various bitwise operators (<code>|</code>, <code>&amp;</code> and <code>~</code>), just remember that we use it to read or write one bit at a time. The <code>PC3</code> is the bit number.</p>
 <p>To compile, substitute your own microcontroller version:</p>
-<div class="codehilite"><pre><span></span>avr-gcc -Os -mmcu=atmega328p -c -o main.o main.c
+<div class="codehilite"><pre>avr-gcc -Os -mmcu=atmega328p -c -o main.o main.c
 avr-gcc -Os -mmcu=atmega328p -o main.elf main.o
 avr-objcopy -O ihex -R .eeprom main.elf main.hex
 </pre></div>
 
 
 <p>Upload (substitute your programmer and microcontroller too)</p>
-<div class="codehilite"><pre><span></span>avrdude -v -p m328p -c usbtiny -U flash:w:main.hex
+<div class="codehilite"><pre>avrdude -v -p m328p -c usbtiny -U flash:w:main.hex
 </pre></div>
 
 
@@ -102,12 +103,12 @@ avr-objcopy -O ihex -R .eeprom main.elf main.hex
 <h2>Fuses</h2>
 <p>By looking under the "Clock sources" section of the datasheet, we guess that the "Full Swing Crystal Oscillator" is what we want. A paragraph later and we learn that we should set the fuses <code>CKSEL[3:1]</code> to 011. We must also set <code>CKDIV8</code> to 1 to disable the clock division.</p>
 <p>Conveniently, those fuses are all set in the low fuse byte (see the MEMPROG section). First, let's read the current values to double check our assumptions:</p>
-<div class="codehilite"><pre><span></span>avrdude -v -p m328p -c usbtiny -U lfuse:r:my_low_fuse.raw:r
+<div class="codehilite"><pre>avrdude -v -p m328p -c usbtiny -U lfuse:r:my_low_fuse.raw:r
 </pre></div>
 
 
 <p>This will create a 1 byte file containing the current lfuse value, in my case <code>0x62</code>, or <code>0b01100010</code>. To correctly set <code>CKSEL</code> and <code>CKDIV8</code>, we will switch the first and sixth bit (starting from the left!), and get <code>0b11100110</code> (which is <code>0xe6</code> in hex). We can now write it to the microcontroller:</p>
-<div class="codehilite"><pre><span></span>avrdude -v -p m328p -c usbtiny -U lfuse:w:e6:m
+<div class="codehilite"><pre>avrdude -v -p m328p -c usbtiny -U lfuse:w:e6:m
 </pre></div>
 
 

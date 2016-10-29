@@ -73,7 +73,8 @@ Doing IO on digital pins is straightforward: writing to a global value defined i
 			// set PC3 on
 			PORTC |= _BV(PC3);
 
-			// caveat: the allowed value is around 260ms
+			// caveat: the precision falls down after 260 ms
+			// see the avr-libc documentation
 			_delay_ms(250);
 
 			// set PC3 off
