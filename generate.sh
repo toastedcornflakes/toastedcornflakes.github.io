@@ -60,9 +60,14 @@ if $PYTHON -c 'import csscompressor' 2>/dev/null; then
 	$PYTHON -m csscompressor style.css -o style.css
 fi
 
-if [[ $1 = "--png" ]]; then
+if [[ $1 = "--png" ]] || [[ $2 == "--png" ]]; then
 	# Compress the pngs in articles/resources/
 	command -v optipng >/dev/null 2>&1 && find articles/resources -type f -name "*.png" -exec optipng -o7 {} \;	
+fi
+
+if [[ $1 = "--jpg" ]] || [ $2 == "--jpg" ]; then
+	# Compress the pngs in articles/resources/
+	command -v jpegoptim >/dev/null 2>&1 && find articles/resources -type f -name "*.jpg" -o -name "*.jpeg" -exec jpegoptim -s {} \;	
 fi
 
 
